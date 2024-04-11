@@ -1,0 +1,77 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:dx="clr-namespace:DevExpress.Maui.Core;assembly=DevExpress.Maui.Core"
+             xmlns:dxco="clr-namespace:DevExpress.Maui.Controls;assembly=DevExpress.Maui.Controls"
+             xmlns:dxc="clr-namespace:DevExpress.Maui.Charts;assembly=DevExpress.Maui.Charts"
+             xmlns:dxcv="clr-namespace:DevExpress.Maui.CollectionView;assembly=DevExpress.Maui.CollectionView"
+             xmlns:dxsch="clr-namespace:DevExpress.Maui.Scheduler;assembly=DevExpress.Maui.Scheduler"
+             xmlns:dxg="clr-namespace:DevExpress.Maui.DataGrid;assembly=DevExpress.Maui.DataGrid"
+             xmlns:dxe="clr-namespace:DevExpress.Maui.Editors;assembly=DevExpress.Maui.Editors"
+             xmlns:dxdf="clr-namespace:DevExpress.Maui.DataForm;assembly=DevExpress.Maui.Editors"
+             xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"
+             ios:Page.UseSafeArea="true"
+             x:Class="CryptoStatsX_MAUI.MainPage">
+
+    <Grid BackgroundColor="#1C1C1C" RowDefinitions="*,60">
+        <Grid RowDefinitions="2*,3*">
+            <Image Source="background_main_stats.svg" Aspect="Fill"/>
+            <Grid>
+                
+                <Grid ColumnDefinitions="*,*" VerticalOptions="End">
+                    <dx:DXBorder BorderThickness="0,0,0,2" BorderColor="#FF8A00">
+                        <Label Text="Активы" FontSize="20" HorizontalOptions="Center" TextColor="#FF8A00"/>
+                    </dx:DXBorder>
+
+                    <dx:DXBorder Grid.Column="1" BorderThickness="0,0,0,2" BorderColor="Transparent">
+                        <Label Text="История" FontSize="20" HorizontalOptions="Center" TextColor="#fff"/>
+                    </dx:DXBorder>
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Row="1" RowDefinitions="30,*">
+                <Grid ColumnDefinitions="*,2*,2*">
+                    <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="Цена" TextColor="#909090" FontSize="15"/>
+                    </StackLayout>
+                    <StackLayout Grid.Column="1" Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="P/L за все время" TextColor="#909090" FontSize="14"/>
+                    </StackLayout>
+                    <StackLayout Grid.Column="2" Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="кол-во активов" TextColor="#909090" FontSize="14"/>
+                    </StackLayout>
+                </Grid>
+                
+                <ScrollView Grid.Row="1">
+                    <dx:DXStackLayout x:Name="StackMainTokens" Margin="8,0,8,0">
+                        <!--<dx:DXBorder Margin="0,6,0,0" HeightRequest="70" BackgroundColor="#282828" CornerRadius="10">
+                            <Grid RowDefinitions="*,*" ColumnDefinitions="*,2*,2*,2*">
+                                <Image HeightRequest="35" WidthRequest="35" Grid.RowSpan="2" Source="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" Aspect="Fill"/>
+                                <Label Grid.Column="1" VerticalOptions="Center" FontSize="20" TextColor="#989898" Text="BTC" FontAttributes="Bold"/>
+                                <Label Grid.Row="1" Grid.Column="1" VerticalOptions="Center" FontSize="16" TextColor="#fff" Text="$70400,95" FontAttributes="Bold"/>
+
+                                <Label Grid.Column="2" HorizontalOptions="Start" VerticalOptions="Center" FontSize="15" TextColor="#24FF00" Text="+100%" FontAttributes="Bold"/>
+                                <dx:DXBorder CornerRadius="15" Grid.Row="1" HorizontalOptions="Start" Grid.Column="2" VerticalOptions="Start" BackgroundColor="#141414" Padding="5,2,5,2">
+                                    <Label FontSize="15" TextColor="#24FF00" Text="$10000" FontAttributes="Bold"/>
+                                </dx:DXBorder>
+
+                                <Label Margin="0,0,5,0" Grid.Column="3" HorizontalOptions="End" VerticalOptions="Center" FontSize="15" TextColor="#fff" Text="0,000234568" FontAttributes="Bold"/>
+                                <dx:DXBorder Margin="0,0,5,0" CornerRadius="15" Grid.Row="1" HorizontalOptions="End" Grid.Column="3" VerticalOptions="Start" BackgroundColor="#141414" Padding="5,2,5,2">
+                                    <Label FontSize="15" TextColor="#fff" Text="$10000" FontAttributes="Bold"/>
+                                </dx:DXBorder>
+
+                            </Grid>
+                        </dx:DXBorder>-->
+                    </dx:DXStackLayout>
+                </ScrollView>
+            </Grid>
+        </Grid>
+
+        <dx:DXBorder CornerRadius="10,10,0,0" Grid.Row="1">
+            <Grid BackgroundColor="#3B3B3B" ColumnDefinitions="*,*,*">
+                <Image Source="bag_active.svg" Margin="10"/>
+                <Image Grid.Column="1" Source="plus_no_active.svg" Margin="15"/>
+                <Image Grid.Column="2" Source="other_no_active.svg" Margin="18"/>
+            </Grid>
+        </dx:DXBorder>
+    </Grid>
+</ContentPage>

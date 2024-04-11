@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34525.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoStatsX_MAUI", "CryptoStatsX_MAUI.csproj", "{6957A2CF-B86B-477D-AB23-8236177E1351}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6957A2CF-B86B-477D-AB23-8236177E1351}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6957A2CF-B86B-477D-AB23-8236177E1351}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6957A2CF-B86B-477D-AB23-8236177E1351}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{6957A2CF-B86B-477D-AB23-8236177E1351}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6957A2CF-B86B-477D-AB23-8236177E1351}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6957A2CF-B86B-477D-AB23-8236177E1351}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {23105BFB-5A2B-45B9-8AAF-9D3B8B0EFFF1}
+	EndGlobalSection
+EndGlobal
