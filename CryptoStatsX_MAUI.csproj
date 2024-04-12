@@ -69,6 +69,7 @@
 		<PackageReference Include="DevExpress.Maui.Editors" Version="23.2.5" />
 		<PackageReference Include="DevExpress.Maui.DataGrid" Version="23.2.5" />
 		<PackageReference Include="DevExpress.Maui.Scheduler" Version="23.2.5" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="RestSharp" Version="110.2.0" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
 		<TrimmableAssembly Include="DevExpress.Data.v23.2" />

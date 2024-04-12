@@ -15,9 +15,14 @@
     <Grid BackgroundColor="#1C1C1C" RowDefinitions="*,60">
         <Grid RowDefinitions="2*,3*">
             <Image Source="background_main_stats.svg" Aspect="Fill"/>
-            <Grid>
-                
-                <Grid ColumnDefinitions="*,*" VerticalOptions="End">
+            <Grid RowDefinitions="2*, 4*, *">
+
+                <Grid ColumnDefinitions="*,*" HorizontalOptions="Center" VerticalOptions="Center">
+                    <Label x:Name="TotalAssets" Text="$9999" FontSize="30" TextColor="#fff"/>
+                    <Label x:Name="TotalPercentage" TextColor="#24FF00" VerticalOptions="End" Grid.Column="1" Text="+100%" FontSize="15"/>
+                </Grid>
+
+                <Grid Grid.Row="2" ColumnDefinitions="*,*" VerticalOptions="End">
                     <dx:DXBorder BorderThickness="0,0,0,2" BorderColor="#FF8A00">
                         <Label Text="Активы" FontSize="20" HorizontalOptions="Center" TextColor="#FF8A00"/>
                     </dx:DXBorder>
@@ -66,12 +71,38 @@
             </Grid>
         </Grid>
 
+
+        <dx:DXBorder x:Name="BorderPlus" IsVisible="false" Grid.RowSpan="2" CornerRadius="10,10,0,0" HeightRequest="260" Background="#3B3B3B" VerticalOptions="End">
+            <StackLayout HorizontalOptions="Center">
+                <Label HorizontalOptions="Center" TextColor="#fff" Margin="20" FontSize="18" FontAttributes="Bold" Text="Добавить новый портфель"/>
+                <Label HorizontalOptions="Center" TextColor="#fff" Margin="20" FontSize="18" FontAttributes="Bold" Text="Добавить транзакцию">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="TapToAddTransaction" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label HorizontalOptions="Center" TextColor="#fff" Margin="20" FontSize="18" FontAttributes="Bold" Text="Настройки"/>
+            </StackLayout>
+        </dx:DXBorder>
         <dx:DXBorder CornerRadius="10,10,0,0" Grid.Row="1">
             <Grid BackgroundColor="#3B3B3B" ColumnDefinitions="*,*,*">
                 <Image Source="bag_active.svg" Margin="10"/>
-                <Image Grid.Column="1" Source="plus_no_active.svg" Margin="15"/>
+                <Image Grid.Column="1" Source="plus_no_active.svg" Margin="15">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="TapPlus" />
+                    </Image.GestureRecognizers>
+                </Image>
                 <Image Grid.Column="2" Source="other_no_active.svg" Margin="18"/>
             </Grid>
         </dx:DXBorder>
+        
+        <dx:DXBorder Grid.RowSpan="2" Background="#161616">
+            <Grid RowDefinitions="50,*">
+                <dxe:TextEdit FocusedBorderColor="Gray" IconVerticalAlignment="Center" TextColor="White" CornerRadius="20" WidthRequest="200" HeightRequest="40" TextVerticalAlignment="Center" BoxPadding="10,0,10,0"/>
+                <StackLayout Grid.Row="1">
+                    <Label Text="Bitcoin (BTC)"/>
+                </StackLayout>
+            </Grid>
+        </dx:DXBorder>
+            
     </Grid>
 </ContentPage>

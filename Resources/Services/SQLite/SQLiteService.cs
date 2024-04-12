@@ -1,4 +1,5 @@
-﻿using SQLite;
+﻿using RestSharp;
+using SQLite;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
         "Crypto.db3");
 
         private SQLiteConnection db = new SQLiteConnection(dbPath);
+
         public SQLiteService() 
         {
             try
@@ -24,26 +26,38 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             catch { }
         }
 
-        public void AddData(string TokenID, double TokenCount)
+        public void AddDataToken(string TokenID, double TokenCount, double AVGPrice)
         {
             BagTokens_1 bagTokens = new BagTokens_1
             {
                 TokenID = TokenID,
-                TokenCount = TokenCount
+                TokenCount = TokenCount,
+                AVGPrice = AVGPrice
             };
             db.Insert(bagTokens);
         }
 
-        public string GetData()
+        public List<BagTokens_1> GetListTokens()
         {
             var data = db.Table<BagTokens_1>();
-            return data.ToList()[0].TokenID;
-            
+            List<BagTokens_1> bagTokens = new List<BagTokens_1>();
             foreach (var item in data)
             {
-                return item.TokenID;
+                bagTokens.Add(item);
             }
-            return "XZ";
+            return bagTokens;
+        }
+
+
+        public BagTokens_1 GetTokenToId(string TokenID)
+        {
+            var token = db.Get<BagTokens_1>(TokenID);
+            return token;
+        }
+
+        public void DelAll()
+        {
+            db.Query<BagTokens_1>($"DELETE FROM BagTokens_1");
         }
     }
 }
