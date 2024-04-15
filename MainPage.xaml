@@ -13,15 +13,16 @@
              x:Class="CryptoStatsX_MAUI.MainPage">
 
     <Grid BackgroundColor="#1C1C1C" RowDefinitions="*,60">
+        <!--Верхний блок с графиком и общей суммой портфеля-->
         <Grid RowDefinitions="2*,3*">
             <Image Source="background_main_stats.svg" Aspect="Fill"/>
             <Grid RowDefinitions="2*, 4*, *">
-
+                <!--Общая сумма портфеля-->
                 <Grid ColumnDefinitions="*,*" HorizontalOptions="Center" VerticalOptions="Center">
                     <Label x:Name="TotalAssets" Text="$9999" FontSize="30" TextColor="#fff"/>
                     <Label x:Name="TotalPercentage" TextColor="#24FF00" VerticalOptions="End" Grid.Column="1" Text="+100%" FontSize="15"/>
                 </Grid>
-
+                <!--Кнопки навигации Активы и Истории-->
                 <Grid Grid.Row="2" ColumnDefinitions="*,*" VerticalOptions="End">
                     <dx:DXBorder BorderThickness="0,0,0,2" BorderColor="#FF8A00">
                         <Label Text="Активы" FontSize="20" HorizontalOptions="Center" TextColor="#FF8A00"/>
@@ -83,6 +84,7 @@
                 <Label HorizontalOptions="Center" TextColor="#fff" Margin="20" FontSize="18" FontAttributes="Bold" Text="Настройки"/>
             </StackLayout>
         </dx:DXBorder>
+        
         <dx:DXBorder CornerRadius="10,10,0,0" Grid.Row="1">
             <Grid BackgroundColor="#3B3B3B" ColumnDefinitions="*,*,*">
                 <Image Source="bag_active.svg" Margin="10"/>
