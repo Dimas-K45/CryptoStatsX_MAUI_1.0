@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -131,5 +132,34 @@ namespace CryptoStatsX_MAUI.Resources.Services
             public double? Price_Change_Percentage_30d_In_Currency { get; set; }
             public double? Price_Change_Percentage_7d_In_Currency { get; set; }
         }
+
+        public static async Task<List<string>> GetListToken()
+        {
+            var options = new RestClientOptions($"https://api.coingecko.com/api/v3/coins/list?include_platform=false");
+            var client = new RestClient(options);
+            var request = new RestRequest("");
+            request.AddHeader("x-cg-demo-api-key", "CG-pibZCCfRXjV16buMmrrk16SU");
+            var response = await client.GetAsync(request);
+
+            // Разбор строки JSON
+            JArray jsonArray = JArray.Parse(response.Content);
+
+            // Извлечение списка id с использованием LINQ
+            List<string> idList = jsonArray.Select(j => (string)j["id"]).ToList();
+            return idList;
+        }
+
+        public static async Task<CryptoCurrency[]> GetListTokenS()
+        {
+            var options = new RestClientOptions($"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&locale=en");
+            var client = new RestClient(options);
+            var request = new RestRequest("");
+            request.AddHeader("x-cg-demo-api-key", "CG-pibZCCfRXjV16buMmrrk16SU");
+            var response = await client.GetAsync(request);
+
+            CryptoCurrency[] cryptos = JsonConvert.DeserializeObject<CryptoCurrency[]>(response.Content);
+            return cryptos;
+        }
+
     }
 }

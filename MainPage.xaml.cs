@@ -1,6 +1,10 @@
 ﻿using CryptoStatsX_MAUI.Resources.Services;
 using CryptoStatsX_MAUI.Resources.Services.SQLite;
 using DevExpress.Maui.Core;
+using DevExpress.Maui.Core.Internal;
+using DevExpress.Maui.DataGrid;
+using DevExpress.Maui.Editors;
+using System.Collections.ObjectModel;
 
 namespace CryptoStatsX_MAUI
 {
@@ -12,7 +16,7 @@ namespace CryptoStatsX_MAUI
             InitializeComponent();
 
             //SQL.AddDataToken("solana", 3, 160);
-            
+
             //SQL.DelAll();
 
             List<string> Tokens = new List<string>();
@@ -20,9 +24,19 @@ namespace CryptoStatsX_MAUI
             {
                 Tokens.Add(t.TokenID);
             }
-            GetCryptoTokensMainMenu(Tokens);
+            //var dataSource = new ObservableCollection<ListToken>();
 
+            //// Добавляем данные в источник данных (для примера, добавляем несколько элементов)
+            //dataSource.Add(new ListToken { Name = "Bitcoin", Symbol = "BTC", Price = 50000 });
+            //dataSource.Add(new ListToken { Name = "Ethereum", Symbol = "ETH", Price = 2000 });
+            //dataSource.Add(new ListToken { Name = "Litecoin", Symbol = "LTC", Price = 200 });
+
+            //DataGridListTokens.ItemsSource = dataSource;
+
+            //GetCryptoTokensMainMenu(Tokens);
+            _ = GetListAllToken();
         }
+
         static string InsertSeparator(string input)
         {
             if (input.Length <= 3)
@@ -46,6 +60,8 @@ namespace CryptoStatsX_MAUI
                 return result;
             }
         }
+
+        //добавление карточки токена на главной странице
         private async void GetCryptoTokensMainMenu(List<string> TokenIDs)
         {
             APICoinGecko.Coin[] InfoTokens = await APICoinGecko.GetTokensInfoToIDs(TokenIDs);
@@ -181,6 +197,22 @@ namespace CryptoStatsX_MAUI
             TotalAssets.Text = "$" + InsertSeparator(TotalAssetsCount.ToString());
         }
 
+        private async Task GetListAllToken()
+        {
+            var dataSource = new ObservableCollection<ListToken>();
+            CryptoCurrency[] coins = await APICoinGecko.GetListTokenS();
+            //throw new Exception($"{coins.Length}");
+            foreach (var coin in coins)
+            {
+                Console.WriteLine();
+                Console.WriteLine(coin.Current_price);
+                Console.WriteLine();
+                dataSource.Add(new ListToken { Name = $"{coin.Name} ({coin.Symbol.ToUpper()})", Symbol = coin.Symbol, Price = (double)coin.Current_price, Image = coin.Image.ToString() });
+            }
+            
+            DataGridListTokens.ItemsSource = dataSource;
+        }
+
         private void TapToAddTransaction(object sender, TappedEventArgs e)
         {
 
@@ -198,6 +230,17 @@ namespace CryptoStatsX_MAUI
             }
         }
 
+        private void SearchListCrypto(object sender, EventArgs e)
+        {
+            try
+            {
+                string searchText = ((TextEdit)sender).Text;
+                DataGridListTokens.FilterString = $"Contains([Name], '{searchText}')";
+            }
+            catch { }
+        }
+
+        
 
 
 
