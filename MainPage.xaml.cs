@@ -1,9 +1,11 @@
-﻿using CryptoStatsX_MAUI.Resources.Services;
+﻿using CryptoStatsX_MAUI.Resources;
+using CryptoStatsX_MAUI.Resources.Services;
 using CryptoStatsX_MAUI.Resources.Services.SQLite;
 using DevExpress.Maui.Core;
 using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.DataGrid;
 using DevExpress.Maui.Editors;
+using Microsoft.Maui.Controls;
 using System.Collections.ObjectModel;
 
 namespace CryptoStatsX_MAUI
@@ -11,11 +13,17 @@ namespace CryptoStatsX_MAUI
     public partial class MainPage : ContentPage
     {
         SQLiteService SQL = new SQLiteService();
+        bool isPanning = true;
+
+        int ActiveBagTokensId = 1;
+        List<AssetsPortfileList> ListPortfile = [];
+        Dictionary<string,object> ActiveInfoTokenTransaction = [];
         public MainPage()
         {
             InitializeComponent();
 
-            //SQL.AddDataToken("solana", 3, 160);
+            //SQL.AddDataToken("solana", 3, 160, 1);
+            //SQL.AddBagToken("Test2", "");
 
             //SQL.DelAll();
 
@@ -24,19 +32,11 @@ namespace CryptoStatsX_MAUI
             {
                 Tokens.Add(t.TokenID);
             }
-            //var dataSource = new ObservableCollection<ListToken>();
-
-            //// Добавляем данные в источник данных (для примера, добавляем несколько элементов)
-            //dataSource.Add(new ListToken { Name = "Bitcoin", Symbol = "BTC", Price = 50000 });
-            //dataSource.Add(new ListToken { Name = "Ethereum", Symbol = "ETH", Price = 2000 });
-            //dataSource.Add(new ListToken { Name = "Litecoin", Symbol = "LTC", Price = 200 });
-
-            //DataGridListTokens.ItemsSource = dataSource;
-
-            //GetCryptoTokensMainMenu(Tokens);
+            GetCryptoTokensMainMenu(Tokens);
             _ = GetListAllToken();
         }
 
+        
         static string InsertSeparator(string input)
         {
             if (input.Length <= 3)
@@ -66,7 +66,7 @@ namespace CryptoStatsX_MAUI
         {
             APICoinGecko.Coin[] InfoTokens = await APICoinGecko.GetTokensInfoToIDs(TokenIDs);
             double? TotalAssetsCount = 0;
-            double? TotalPrecettageCount = 0;
+            StackMainTokens.Children.Clear();
             foreach (var Token in InfoTokens)
             {
                 var tokendb = SQL.GetTokenToId(Token.Id);
@@ -130,6 +130,10 @@ namespace CryptoStatsX_MAUI
                     Text = InsertSeparator((((Token.current_price - tokendb.AVGPrice) / Token.current_price)*100).ToString()) +"%",
                     FontAttributes = FontAttributes.Bold
                 };
+                if (label3.Text[0] == '-')
+                {
+                    label3.TextColor = Color.FromHex("#FF0000");
+                }
                 Grid.SetColumn(label3, 2);
                 grid.Children.Add(label3);
 
@@ -149,9 +153,17 @@ namespace CryptoStatsX_MAUI
                 {
                     FontSize = 15,
                     TextColor = Color.FromHex("#24FF00"),
-                    Text = "$" + InsertSeparator(((tokendb.AVGPrice / 100) * (((Token.current_price - tokendb.AVGPrice) / Token.current_price) * 100)).ToString()),
+                    Text = "$" + InsertSeparator((((tokendb.AVGPrice / 100) * (((Token.current_price - tokendb.AVGPrice) / Token.current_price) * 100))* tokendb.TokenCount).ToString()),
                     FontAttributes = FontAttributes.Bold
                 };
+                if (label4.Text[1] == '-')
+                {
+                    label4.TextColor = Color.FromHex("#FF0000");
+                }
+                if (label4.Text.Length > 10)
+                {
+                    label4.FontSize = 12;
+                }
                 dxBorder2.Content = label4;
 
                 var label5 = new Label
@@ -187,6 +199,10 @@ namespace CryptoStatsX_MAUI
                     Text = "$" + InsertSeparator((tokendb.TokenCount * Token.current_price).ToString()),
                     FontAttributes = FontAttributes.Bold
                 };
+                if (label6.Text.Length > 10)
+                {
+                    label6.FontSize = 12;
+                }
                 dxBorder3.Content = label6;
 
                 dxBorder.Content = grid;
@@ -197,39 +213,48 @@ namespace CryptoStatsX_MAUI
             TotalAssets.Text = "$" + InsertSeparator(TotalAssetsCount.ToString());
         }
 
+        //метод для загрузки списка всех криптовалют
         private async Task GetListAllToken()
         {
             var dataSource = new ObservableCollection<ListToken>();
             CryptoCurrency[] coins = await APICoinGecko.GetListTokenS();
-            //throw new Exception($"{coins.Length}");
+            
             foreach (var coin in coins)
             {
-                Console.WriteLine();
-                Console.WriteLine(coin.Current_price);
-                Console.WriteLine();
-                dataSource.Add(new ListToken { Name = $"{coin.Name} ({coin.Symbol.ToUpper()})", Symbol = coin.Symbol, Price = (double)coin.Current_price, Image = coin.Image.ToString() });
+                dataSource.Add(new ListToken {Id = $"{coin.Id}", Name = $"{coin.Name} ({coin.Symbol.ToUpper()})", Symbol = coin.Symbol, Price = (double)coin.Current_price, Image = coin.Image.ToString() });
             }
             
             DataGridListTokens.ItemsSource = dataSource;
         }
 
+        // клик по добавить транзакцию в меню плюса
         private void TapToAddTransaction(object sender, TappedEventArgs e)
         {
-
+            ListCoinsAndSearch.IsVisible = true;
         }
 
-        private void TapPlus(object sender, TappedEventArgs e)
+        //открытие меню плюса
+        private async void TapPlus(object sender, TappedEventArgs e)
         {
+            Image img = sender as Image;
             if (BorderPlus.IsVisible == true)
             {
+                BorderPlus.TranslateTo(PageTransaction.TranslationX, BorderPlus.Height, 300);
+                await Task.Delay(300);
                 BorderPlus.IsVisible = false;
+                img.Source = "plus_no_active.svg";
             }
             else
             {
                 BorderPlus.IsVisible = true;
+                BorderPlus.TranslationY += BorderPlus.Height;
+                BorderPlus.TranslateTo(PageTransaction.TranslationX, 0, 300);
+                
+                img.Source = "plus_active.svg";
             }
         }
 
+        // поиск коина по списку криптовалют
         private void SearchListCrypto(object sender, EventArgs e)
         {
             try
@@ -240,7 +265,226 @@ namespace CryptoStatsX_MAUI
             catch { }
         }
 
+        //открытие пикера для выбора даты транзакции
+        private void ShowPickerDate(object sender, TappedEventArgs e)
+        {
+            DateEdit dateEdit = sender as DateEdit;
+            dateEdit.IsPickerShown = true;
+        }
         
+        //спайп попаппа транзакций для закрытия
+        async void OnPanUpdated(object sender, PanUpdatedEventArgs e)
+        {
+            var element = (VisualElement)sender;
+            
+            switch (e.StatusType)
+            {
+                case GestureStatus.Started:
+                    // Сохраняем изначальные значения TranslationX и TranslationY
+                    isPanning = true;
+                    break;
+
+                case GestureStatus.Running:
+                    if (isPanning)
+                    {
+                        // Сдвигаем элементы вместе с движением пальца
+                        //element.TranslationX += e.TotalX;
+                        element.TranslationY += e.TotalY;
+                        PageTransaction.TranslationY += e.TotalY;
+                        // Проверяем, сдвинулся ли элемент вниз более чем на 50%
+                        if (element.TranslationY > (element.Height * 0.5) && PageTransaction.TranslationY > (PageTransaction.Height * 0.5))
+                        {
+                            isPanning = false; // Прекращаем обработку перемещения
+
+                            // Скрываем элементы с помощью анимации
+                            await Task.WhenAll(
+                                element.TranslateTo(element.TranslationX, PageTransaction.Height, 250), // Скрываем элемент
+                                PageTransaction.TranslateTo(PageTransaction.TranslationX, PageTransaction.Height, 250) // Скрываем элемент
+                            );
+
+                            await Task.Delay(100);
+
+                            // Скрываем элементы с помощью анимации, если они видимы (это важно, чтобы избежать мигания элементов)
+                            if (MainPageTransaction.IsVisible)
+                            {
+                                // Скрываем элементы
+                                MainPageTransaction.IsVisible = false;
+                            }
+                        }
+                    }
+                    break;
+
+                case GestureStatus.Canceled:
+                case GestureStatus.Completed:
+                    // Если жест завершился до того, как элемент скрылся за экраном,
+                    // возвращаем его на исходное место
+                    if (isPanning)
+                    {
+                        element.TranslateTo(element.TranslationX, 0, 250); // Возвращаем элемент
+                        PageTransaction.TranslateTo(PageTransaction.TranslationX, 0, 250); // Возвращаем элемент
+                    }
+                    break;
+            }
+        }
+
+        // завершение транзакции
+        private void TapSuccesTransaction(object sender, TappedEventArgs e)
+        {
+            if (CountCoinOrUsd.Value > 0)
+            {
+                if (PriceTransaction.Value > 0)
+                {
+                    if (LabelBuyTransaction.TextColor.ToRgbaHex() == Color.Parse("#05FF00").ToRgbaHex())
+                    {
+                        string[] info = LabelCountCoinOrUsd.Text.Split(' ');
+                        
+                        if (info[info.Length-1] == "USD")
+                        {
+                            SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId);
+                            List<string> Tokens = new List<string>();
+                            foreach (var t in SQL.GetListTokens())
+                            {
+                                Tokens.Add(t.TokenID);
+                            }
+                            GetCryptoTokensMainMenu(Tokens);
+                            MainPageTransaction.IsVisible = false;
+                        }
+                        else
+                        {
+                            SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId);
+                            List<string> Tokens = new List<string>();
+                            foreach (var t in SQL.GetListTokens())
+                            {
+                                Tokens.Add(t.TokenID);
+                            }
+                            GetCryptoTokensMainMenu(Tokens);
+                            MainPageTransaction.IsVisible = false;
+                        }
+                    }
+                    else if (LabelBuyTransaction.TextColor == Color.Parse("#FF0000"))
+                    {
+
+                    }
+                }
+                else
+                {
+                    Vibration.Default.Vibrate();
+                }
+            }
+            else
+            {
+                Vibration.Default.Vibrate();
+            }
+        }
+
+        //выбор в транзакции купить или продать
+        private void TapBuyAndSellTransaction(object sender, TappedEventArgs e)
+        {
+            Label lab = sender as Label;
+            if (lab != null)
+            {
+                if (lab.Text == "Купить")
+                {
+                    lab.TextColor = Color.Parse("#05FF00");
+                    BorderBuyTransaction.BorderThickness = 1;
+                    TextUsdTransactionCheck.Text = "Вычесть из накоплений USD/USDT";
+
+                    BorderSellTransaction.BorderThickness = 0;
+                    LabelSellTransaction.TextColor = Color.Parse("#C4C4C4");
+                }
+                else if (lab.Text == "Продать")
+                {
+                    lab.TextColor = Color.Parse("#FF0000");
+                    BorderSellTransaction.BorderThickness = 1;
+                    TextUsdTransactionCheck.Text = "Добавить в накопления USD/USDT";
+
+                    BorderBuyTransaction.BorderThickness = 0;
+                    LabelBuyTransaction.TextColor = Color.Parse("#C4C4C4");
+                }
+                
+            }
+        }
+
+        //тап по тексту добавить из запасов usd
+        private void UsdTransactionCheck(object sender, TappedEventArgs e)
+        {
+            if (CheckUsdTransaction.IsChecked == true)
+            {
+                CheckUsdTransaction.IsChecked = false;
+            }
+            else
+            {
+                CheckUsdTransaction.IsChecked = true;
+            }
+        }
+
+        //тап по стрелкам в добавлении транзакции для конвертации
+        private void TapConvertToTransactionCoinOrUsd(object sender, TappedEventArgs e)
+        {
+            string[] str = LabelCountCoinOrUsd.Text.Split(' ');
+            if (str[str.Length -1] == "USD")
+            {
+                LabelCountCoinOrUsd.Text = str[0] + $" {ActiveInfoTokenTransaction[APICoinGecko.CoinField.Symbol.ToString().ToLower()].ToString().ToUpper()}";
+                decimal count = (decimal)(CountCoinOrUsd.Value == null ? 0 : CountCoinOrUsd.Value);
+                CountCoinOrUsd.Value = Math.Round(count / Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ",")), 8);
+            }
+            else
+            {
+                LabelCountCoinOrUsd.Text = str[0] + $" USD";
+                decimal count = (decimal)(CountCoinOrUsd.Value == null ? 0 : CountCoinOrUsd.Value);
+                CountCoinOrUsd.Value = Math.Round(count * Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ",")), 8);
+            }
+        }
+
+        //тап по коину из списка для перехода к добавлению транзакции
+        private async void TapGetAddTransaction(object sender, TappedEventArgs e)
+        {
+            Label lab = sender as Label;
+            if (ActiveInfoTokenTransaction.Count != 0 && lab.AutomationId.ToString() != ActiveInfoTokenTransaction[APICoinGecko.CoinField.Id.ToString().ToLower()].ToString())
+            {
+                CountCoinOrUsd.Value = 0;
+            }
+            ActiveInfoTokenTransaction = await APICoinGecko.GetInfoTokenToID(lab.AutomationId.ToString(), "usd");
+            
+            ListCoinsAndSearch.IsVisible = false;
+            MainPageTransaction.IsVisible = true;
+            swipeLabel.TranslationY += swipeLabel.Height;
+            PageTransaction.TranslationY += swipeLabel.Height;
+            await Task.WhenAll(swipeLabel.TranslateTo(swipeLabel.TranslationX, 0, 250),
+            PageTransaction.TranslateTo(PageTransaction.TranslationX, 0, 250)
+            );
+
+            DateTimeTransaction.Date = DateTime.Now;
+            ListPortfile = SQL.GetListBagTokens();
+            List<string> NamePortfiles = new List<string>();
+            foreach (var list in ListPortfile)
+            {
+                NamePortfiles.Add(list.Name);
+            }
+            ComboBoxPortfileTransaction.ItemsSource = NamePortfiles;
+            ComboBoxPortfileTransaction.SelectedIndex = ActiveBagTokensId - 1;
+
+            swipeLabel.Text = ActiveInfoTokenTransaction[APICoinGecko.CoinField.Name.ToString().ToLower()].ToString();
+            LabelCountCoinOrUsd.Text = $"Всего {ActiveInfoTokenTransaction[APICoinGecko.CoinField.Symbol.ToString().ToLower()].ToString().ToUpper()}";
+            PriceTransaction.Value = Math.Round(Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ",")), 8);
+        }
+
+        //обработка тапа при нажатии вне попаппа транзакции
+        private async void TapMainPageTransaction(object sender, TappedEventArgs e)
+        {
+            await Task.WhenAll(
+                swipeLabel.TranslateTo(swipeLabel.TranslationX, PageTransaction.Height, 250), 
+                PageTransaction.TranslateTo(PageTransaction.TranslationX, PageTransaction.Height, 250)
+            );
+            await Task.Delay(100);
+            
+            if (MainPageTransaction.IsVisible)
+            {
+                MainPageTransaction.IsVisible = false;
+            }
+        }
+
+
 
 
 

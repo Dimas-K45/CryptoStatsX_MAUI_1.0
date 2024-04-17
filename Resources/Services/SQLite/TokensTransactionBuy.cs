@@ -13,7 +13,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
         [PrimaryKey, AutoIncrement, Column("Id")]
         public int Id { get; set; }
 
-        [System.ComponentModel.DataAnnotations.Schema.ForeignKey("BagTokens_1")]
+        [Column("TokenId")]
         public string TokenId { get; set; }
 
         [Column("Price")]
@@ -25,6 +25,8 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
         [Column("Date")]
         public DateTime Date { get; set; }
 
+        [Column("IdBagTokens")]
+        public int IdBagTokens { get; set; }
 
     }
 }

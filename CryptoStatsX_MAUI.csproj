@@ -46,6 +46,8 @@
 	  <None Remove="Resources\Images\SvgNavigate\other_no_active.svg" />
 	  <None Remove="Resources\Images\SvgNavigate\plus_active.svg" />
 	  <None Remove="Resources\Images\SvgNavigate\plus_no_active.svg" />
+	  <None Remove="Resources\Images\SvgTransaction\arrow_refresh.svg" />
+	  <None Remove="Resources\Images\SvgTransaction\yes.svg" />
 	</ItemGroup>
 	<ItemGroup>
 	  <MauiImage Include="Resources\Images\SvgNavigate\background_main_stats.svg" />
@@ -55,6 +57,8 @@
 	  <MauiImage Include="Resources\Images\SvgNavigate\other_no_active.svg" />
 	  <MauiImage Include="Resources\Images\SvgNavigate\plus_active.svg" />
 	  <MauiImage Include="Resources\Images\SvgNavigate\plus_no_active.svg" />
+	  <MauiImage Include="Resources\Images\SvgTransaction\arrow_refresh.svg" />
+	  <MauiImage Include="Resources\Images\SvgTransaction\yes.svg" />
 	</ItemGroup>
 
 	<ItemGroup>

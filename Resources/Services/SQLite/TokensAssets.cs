@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace CryptoStatsX_MAUI.Resources.Services.SQLite
 {
-    [Table("BagTokens_1")]
-    public class BagTokens_1
+    [Table("TokensAssets")]
+    public class TokensAssets
     {
         [PrimaryKey, Column("TokenID")]
         public string TokenID { get; set; }
@@ -18,6 +18,9 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
 
         [Column("AVGPrice")]
         public double AVGPrice { get; set; }
-        
+
+        [Column("IdBagTokens")]
+        public int IdBagTokens { get; set; }
+
     }
 }

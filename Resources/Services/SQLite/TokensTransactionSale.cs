@@ -25,6 +25,8 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
         [Column("Date")]
         public DateTime Date { get; set; }
 
+        [Column("IdBagTokens")]
+        public int IdBagTokens { get; set; }
 
     }
 }
