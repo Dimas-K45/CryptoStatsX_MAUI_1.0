@@ -91,7 +91,7 @@ namespace CryptoStatsX_MAUI.Resources.Services
             var options = new RestClientOptions($"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids={tokens}&order=market_cap_desc&per_page=250&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d%2C14d%2C30d%2C90d%2C1y&locale=en&precision=8");
             var client = new RestClient(options);
             var request = new RestRequest("");
-            request.AddHeader("x-cg-demo-api-key", "CG-pibZCCfRXjV16buMmrrk16SU");
+            request.AddHeader("x-cg-demo-api-key", APIKeyCoinGecko);
             var response = await client.GetAsync(request);
 
             Coin[] coins = JsonConvert.DeserializeObject<Coin[]>(response.Content);
@@ -138,7 +138,7 @@ namespace CryptoStatsX_MAUI.Resources.Services
             var options = new RestClientOptions($"https://api.coingecko.com/api/v3/coins/list?include_platform=false");
             var client = new RestClient(options);
             var request = new RestRequest("");
-            request.AddHeader("x-cg-demo-api-key", "CG-pibZCCfRXjV16buMmrrk16SU");
+            request.AddHeader("x-cg-demo-api-key", APIKeyCoinGecko);
             var response = await client.GetAsync(request);
 
             // Разбор строки JSON
@@ -154,7 +154,7 @@ namespace CryptoStatsX_MAUI.Resources.Services
             var options = new RestClientOptions($"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=1&sparkline=false&locale=en");
             var client = new RestClient(options);
             var request = new RestRequest("");
-            request.AddHeader("x-cg-demo-api-key", "CG-pibZCCfRXjV16buMmrrk16SU");
+            request.AddHeader("x-cg-demo-api-key", APIKeyCoinGecko);
             var response = await client.GetAsync(request);
 
             CryptoCurrency[] cryptos = JsonConvert.DeserializeObject<CryptoCurrency[]>(response.Content);

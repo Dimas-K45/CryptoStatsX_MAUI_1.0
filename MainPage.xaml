@@ -12,7 +12,7 @@
              ios:Page.UseSafeArea="true"
              x:Class="CryptoStatsX_MAUI.MainPage">
 
-    <Grid BackgroundColor="#1C1C1C" RowDefinitions="*,60">
+    <Grid BackgroundColor="#1C1C1C" RowDefinitions="*,50">
         <!--Верхний блок с графиком и общей суммой портфеля-->
         <Grid RowDefinitions="2*,3*">
             <Image Source="background_main_stats.svg" Aspect="Fill"/>
@@ -101,7 +101,12 @@
         <!--Список монет и их поиск-->
         <dx:DXBorder x:Name="ListCoinsAndSearch" Grid.RowSpan="2" Background="#161616" IsVisible="False">
             <Grid RowDefinitions="50,*">
-                <dxe:TextEdit TextChanged="SearchListCrypto" PlaceholderText="Поиск" FocusedBorderColor="Gray" IconVerticalAlignment="Center" TextColor="White" CornerRadius="20" WidthRequest="200" HeightRequest="40" TextVerticalAlignment="Center" BoxPadding="10,0,10,0"/>
+                <Image Source="arrow_back.svg" HorizontalOptions="Start" Margin="10,0,0,0">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="TapBackIsListCoinsAndSearch" />
+                    </Image.GestureRecognizers>
+                </Image>
+                <dxe:TextEdit x:Name="TextEditListCoinsAndSearch" TextChanged="SearchListCrypto" PlaceholderText="Поиск" FocusedBorderColor="Gray" IconVerticalAlignment="Center" TextColor="White" CornerRadius="20" WidthRequest="200" HeightRequest="40" TextVerticalAlignment="Center" BoxPadding="10,0,10,0"/>
                 <StackLayout Grid.Row="1">
                     <dxg:DataGridView x:Name="DataGridListTokens" BackgroundColor="#161616" SelectionMode="None" IsColumnHeaderVisible="False">
                         <dxg:DataGridView.GroupRowAppearance>
@@ -134,9 +139,6 @@
         
         <!--страница с добавлением транзакций-->
         <dx:DXBorder x:Name="MainPageTransaction" Grid.RowSpan="2" Background="#99161616" IsVisible="false">
-            <dx:DXBorder.GestureRecognizers>
-                <TapGestureRecognizer Tapped="TapMainPageTransaction" />
-            </dx:DXBorder.GestureRecognizers>
             <Grid RowDefinitions="2*,5*">
                 <Label x:Name="swipeLabel" Text="Bitcoin" TextColor="#D4D4D4" HorizontalOptions="Center" VerticalOptions="End" FontSize="20" FontAttributes="Bold">
                     <Label.GestureRecognizers>
@@ -150,7 +152,7 @@
                 </Image>
 
                 <dx:DXBorder x:Name="PageTransaction" CornerRadius="20,20,0,0" Opacity="1" Grid.Row="1" Grid.RowSpan="2" Background="#161616">
-                    <Grid RowDefinitions="2*,*,*,*,*,*,3*">
+                    <Grid RowDefinitions="2*,*,*,*,*,*,2*">
                         <Grid ColumnDefinitions="*,*">
                             <dx:DXBorder x:Name="BorderBuyTransaction" BorderThickness="1" BorderColor="#05FF00" BackgroundColor="#5E5E5E" Margin="20" CornerRadius="10">
                                 <Label x:Name="LabelBuyTransaction" Text="Купить" FontSize="20" TextColor="#05FF00" VerticalOptions="Center" HorizontalOptions="Center">
@@ -214,19 +216,22 @@
                                     <TapGestureRecognizer Tapped="UsdTransactionCheck" />
                                 </Label.GestureRecognizers>
                             </Label>
-                            <dxe:CheckEdit x:Name="CheckUsdTransaction" Grid.Column="2" CheckedCheckBoxColor="#05FF00" HorizontalOptions="Center" IsChecked="True"/>
+                            <dxe:CheckEdit x:Name="CheckUsdTransaction" Grid.Column="2" CheckedCheckBoxColor="#05FF00" HorizontalOptions="Center" IsChecked="False"/>
                             <dx:DXBorder Margin="15,0,15,0" HeightRequest="1" VerticalOptions="End" BackgroundColor="#535353" Grid.ColumnSpan="3"/>
-                        </Grid>
-
-                        <Grid Grid.Row="6" RowDefinitions="30,*">
-                            <Label Grid.Column="1" Text="Комментарий" VerticalOptions="Center" VerticalTextAlignment="Center" TextColor="#E5E5E5" FontSize="20"/>
-                            <dxe:TextEdit BackgroundColor="#313131" BorderThickness="0" FocusedBorderThickness="0" Margin="20" Grid.Row="1" TextColor="#FF8A00" TextVerticalAlignment="Start" ClearIconVisibility="Never"/>
-
                         </Grid>
 
                     </Grid>
                 </dx:DXBorder>
             </Grid>
         </dx:DXBorder>
+
+        <!--уведомление вверху-->
+        <dx:DXBorder x:Name="PushBorder" IsVisible="False" CornerRadius="20" BackgroundColor="#B23B3B3B" VerticalOptions="Start" Margin="0,20,0,0" WidthRequest="300" HeightRequest="60">
+            <Grid ColumnDefinitions="50,*">
+                <Image x:Name="PushImage" Source="error_circle.svg" VerticalOptions="Center" HorizontalOptions="Center" HeightRequest="30"/>
+                <Label x:Name="PushMessage" Grid.Column="1" VerticalOptions="Center" FontAttributes="Bold" FontSize="12" Text="Текст ошибки здесь" TextColor="#fff"/>
+            </Grid>
+        </dx:DXBorder>
+        
     </Grid>
 </ContentPage>

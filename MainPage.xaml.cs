@@ -32,8 +32,16 @@ namespace CryptoStatsX_MAUI
             {
                 Tokens.Add(t.TokenID);
             }
-            GetCryptoTokensMainMenu(Tokens);
-            _ = GetListAllToken();
+            try
+            {
+                GetCryptoTokensMainMenu(Tokens);
+                _ = GetListAllToken();
+            }
+            catch
+            {
+                _ = GetPushBox("Ошибка подключения к сети", ImgPushBox.wifi);
+            }
+            
         }
 
         
@@ -71,7 +79,10 @@ namespace CryptoStatsX_MAUI
             {
                 var tokendb = SQL.GetTokenToId(Token.Id);
                 TotalAssetsCount += Token.current_price;
-                
+                if (tokendb.TokenCount <= 0)
+                {
+                    continue;
+                }
                 var dxBorder = new DXBorder
                 {
                     Margin = new Thickness(0, 6, 0, 0),
@@ -328,52 +339,173 @@ namespace CryptoStatsX_MAUI
         }
 
         // завершение транзакции
-        private void TapSuccesTransaction(object sender, TappedEventArgs e)
+        private async void TapSuccesTransaction(object sender, TappedEventArgs e)
         {
+            void ClosePage()
+            {
+                List<string> Tokens = new List<string>();
+                foreach (var t in SQL.GetListTokens())
+                {
+                    Tokens.Add(t.TokenID);
+                }
+                GetCryptoTokensMainMenu(Tokens);
+                MainPageTransaction.IsVisible = false;
+            }
+
             if (CountCoinOrUsd.Value > 0)
             {
                 if (PriceTransaction.Value > 0)
                 {
-                    if (LabelBuyTransaction.TextColor.ToRgbaHex() == Color.Parse("#05FF00").ToRgbaHex())
+                    if (CheckUsdTransaction.IsChecked == true)
                     {
-                        string[] info = LabelCountCoinOrUsd.Text.Split(' ');
-                        
-                        if (info[info.Length-1] == "USD")
+                        if (LabelBuyTransaction.TextColor.ToRgbaHex() == Color.Parse("#05FF00").ToRgbaHex())
                         {
-                            SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId);
-                            List<string> Tokens = new List<string>();
-                            foreach (var t in SQL.GetListTokens())
+                            string[] info = LabelCountCoinOrUsd.Text.Split(' ');
+                            
+                            if (info[info.Length - 1] == "USD")
                             {
-                                Tokens.Add(t.TokenID);
+                                if (SQL.UpDateTokenMinus("tether", Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId))
+                                {
+                                    SQL.UpDateTokenMinus("tether", Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId);
+                                    SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex);
+                                    
+                                    ClosePage();
+                                    await GetPushBox("Успешно куплено!", ImgPushBox.yes);
+                                }
+                                else
+                                {
+                                    await GetPushBox("Недостаточно активов USDT", ImgPushBox.error_circle);
+                                }
                             }
-                            GetCryptoTokensMainMenu(Tokens);
-                            MainPageTransaction.IsVisible = false;
+                            else
+                            {
+                                if (SQL.UpDateTokenMinus("tether", (Convert.ToDouble(CountCoinOrUsd.Value) * Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ActiveBagTokensId))
+                                {
+                                    SQL.UpDateTokenMinus("tether", (Convert.ToDouble(CountCoinOrUsd.Value) * Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ActiveBagTokensId);
+                                    SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId);
+                                    
+                                    ClosePage();
+                                    await GetPushBox("Успешно куплено!", ImgPushBox.yes);
+                                }
+                                else
+                                {
+                                    await GetPushBox("Недостаточно активов USDT", ImgPushBox.error_circle);
+                                }
+                            }
+                            
                         }
-                        else
+                        else if (LabelSellTransaction.TextColor.ToArgbHex() == Color.Parse("#FF0000").ToRgbaHex())
                         {
-                            SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId);
-                            List<string> Tokens = new List<string>();
-                            foreach (var t in SQL.GetListTokens())
+                            string[] info = LabelCountCoinOrUsd.Text.Split(' ');
+
+                            if (info[info.Length - 1] == "USD")
                             {
-                                Tokens.Add(t.TokenID);
+                                if (SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), (Convert.ToDouble(CountCoinOrUsd.Value) / Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ActiveBagTokensId))
+                                {
+                                    SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), (Convert.ToDouble(CountCoinOrUsd.Value) / Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ActiveBagTokensId);
+                                    SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex, true);
+                                    
+                                    ClosePage();
+                                    await GetPushBox("Успешно Продано!", ImgPushBox.yes);
+                                }
+                                else
+                                {
+                                    await GetPushBox($"Недостаточно активов {ActiveInfoTokenTransaction["symbol"]}", ImgPushBox.error_circle);
+                                }
                             }
-                            GetCryptoTokensMainMenu(Tokens);
-                            MainPageTransaction.IsVisible = false;
+                            else
+                            {
+                                if (SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId) && SQL.CheckExist(ActiveInfoTokenTransaction["id"].ToString()))
+                                {
+                                    SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId);
+                                    SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId, true);
+                                    
+                                    ClosePage();
+                                    await GetPushBox("Успешно Продано!", ImgPushBox.yes);
+                                }
+                                else
+                                {
+                                    await GetPushBox($"Недостаточно активов {ActiveInfoTokenTransaction["symbol"]}", ImgPushBox.error_circle);
+                                }
+                            }
                         }
                     }
-                    else if (LabelBuyTransaction.TextColor == Color.Parse("#FF0000"))
+                    else
                     {
+                        if (LabelBuyTransaction.TextColor.ToRgbaHex() == Color.Parse("#05FF00").ToRgbaHex())
+                        {
+                            string[] info = LabelCountCoinOrUsd.Text.Split(' ');
 
+                            if (info[info.Length - 1] == "USD")
+                            {
+                                SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex);
+
+                                ClosePage();
+                                await GetPushBox("Успешно куплено!", ImgPushBox.yes);
+                            }
+                            else
+                            {
+                                SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId);
+
+                                ClosePage();
+                                await GetPushBox("Успешно куплено!", ImgPushBox.yes);
+                            }
+                        }
+                        else if (LabelSellTransaction.TextColor.ToArgbHex() == Color.Parse("#FF0000").ToRgbaHex())
+                        {
+                            string[] info = LabelCountCoinOrUsd.Text.Split(' ');
+
+                            if (info[info.Length - 1] == "USD")
+                            {
+                                SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex, false);
+
+                                ClosePage();
+                                await GetPushBox("Успешно Продано!", ImgPushBox.yes);
+                            }
+                            else
+                            {
+                                SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId, false);
+
+                                ClosePage();
+                                await GetPushBox("Успешно Продано!", ImgPushBox.yes);
+                            }
+                        }
                     }
                 }
                 else
                 {
-                    Vibration.Default.Vibrate();
+                    await GetPushBox("Заполните Цену!", ImgPushBox.error_circle);
                 }
             }
             else
             {
+                await GetPushBox("Заполните Кол-во!", ImgPushBox.error_circle);
+            }
+        }
+
+        private enum ImgPushBox
+        {
+            info_circle,
+            error_circle,
+            yes,
+            wifi
+        }
+        //метод для анимации и вызова уведомления об ошибке
+        private async Task GetPushBox(string message, ImgPushBox image)
+        {
+            PushImage.Source = $"{image}.svg";
+            
+            if (PushBorder.IsVisible == false)
+            {
                 Vibration.Default.Vibrate();
+                PushBorder.TranslationY += -PushBorder.Height + 20;
+                PushMessage.Text = message;
+                PushBorder.IsVisible = true;
+                await PushBorder.TranslateTo(PushBorder.TranslationX, 0, 250);
+                await Task.Delay(3000);
+                await PushBorder.TranslateTo(PushBorder.TranslationX, -PushBorder.Height * 2 + 20, 250);
+                await Task.Delay(1000);
+                PushBorder.IsVisible = false;
             }
         }
 
@@ -469,20 +601,13 @@ namespace CryptoStatsX_MAUI
             PriceTransaction.Value = Math.Round(Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ",")), 8);
         }
 
-        //обработка тапа при нажатии вне попаппа транзакции
-        private async void TapMainPageTransaction(object sender, TappedEventArgs e)
+        private void TapBackIsListCoinsAndSearch(object sender, TappedEventArgs e)
         {
-            await Task.WhenAll(
-                swipeLabel.TranslateTo(swipeLabel.TranslationX, PageTransaction.Height, 250), 
-                PageTransaction.TranslateTo(PageTransaction.TranslationX, PageTransaction.Height, 250)
-            );
-            await Task.Delay(100);
-            
-            if (MainPageTransaction.IsVisible)
-            {
-                MainPageTransaction.IsVisible = false;
-            }
+            ListCoinsAndSearch.IsVisible = false;
         }
+
+        
+
 
 
 

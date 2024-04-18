@@ -49,6 +49,56 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             };
             db.Insert(bagTokens);
         }
+
+        public bool UpDateTokenPlus(string TokenId, double Count, int BagTokensId)
+        {
+            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId);
+            if (existingItem != null)
+            {
+                existingItem.TokenCount += Count;
+                db.Update(existingItem);
+                //db.Backup("Download/");
+                return true;
+            }
+            else
+            {
+                AddDataToken(TokenId, 0, 0, BagTokensId);
+                var existingItem2 = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId);
+                existingItem2.TokenCount += Count;
+                db.Update(existingItem2);
+                return true;
+            }
+        }
+        public bool UpDateTokenMinus(string TokenId, double Count, int BagTokensId)
+        {
+            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId);
+            if (existingItem != null)
+            {
+                if (existingItem.TokenCount - Count >= 0)
+                {
+                    existingItem.TokenCount = existingItem.TokenCount - Count;
+                    Console.WriteLine();
+                    Console.WriteLine(existingItem.TokenCount);
+                    Console.WriteLine(Count);
+                    Console.WriteLine();
+                    db.Update(existingItem);
+                    return true;
+                }
+                else return false;
+            }
+            else
+            {
+                AddDataToken(TokenId, 0, 1, BagTokensId);
+                var existingItem2 = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId);
+                if (existingItem2.TokenCount - Count >= 0)
+                {
+                    existingItem2.TokenCount -= Count;
+                    db.Update(existingItem2);
+                    return true;
+                }
+                else return false;
+            }
+        }
         public void AddTransactionBuy(string TokenId, double Price, double Count, DateTime Date, int IdBagTokens)
         {
             TokensTransactionBuy bagTokens = new TokensTransactionBuy
@@ -84,7 +134,18 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
                 db.Update(existingItem);
             }
         }
-        public void AddTransactionSell(string TokenId, double Price, double Count, DateTime Date, int IdBagTokens)
+
+        public bool CheckExist(string TokenID)
+        {
+            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenID);
+
+            if (existingItem == null)
+            {
+                return false;
+            }
+            else { return true; }
+        }
+        public void AddTransactionSell(string TokenId, double Price, double Count, DateTime Date, int IdBagTokens, bool tetherIsAdd)
         {
             TokensTransactionSale bagTokens = new TokensTransactionSale
             {
@@ -95,6 +156,11 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
                 IdBagTokens = IdBagTokens
             };
             db.Insert(bagTokens);
+
+            if (tetherIsAdd )
+            {
+                UpDateTokenPlus("tether", Price * Count, IdBagTokens);
+            }
         }
 
         public List<TokensAssets> GetListTokens()
