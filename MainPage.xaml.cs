@@ -6,6 +6,7 @@ using DevExpress.Maui.Core.Internal;
 using DevExpress.Maui.DataGrid;
 using DevExpress.Maui.Editors;
 using Microsoft.Maui.Controls;
+using RestSharp;
 using System.Collections.ObjectModel;
 
 namespace CryptoStatsX_MAUI
@@ -43,7 +44,6 @@ namespace CryptoStatsX_MAUI
             }
             
         }
-
         
         static string InsertSeparator(string input)
         {
@@ -98,16 +98,22 @@ namespace CryptoStatsX_MAUI
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
+                grid.InputTransparent = true;
 
                 var image = new Image
                 {
                     HeightRequest = 35,
                     WidthRequest = 35,
                     Source = Token.Image,
-                    Aspect = Aspect.Fill
+                    Aspect = Aspect.Fill,
+                    AutomationId = Token.Id
                 };
                 Grid.SetRowSpan(image, 2);
                 grid.Children.Add(image);
+
+                var tapIsImage = new TapGestureRecognizer();
+                tapIsImage.Tapped += TapCryptoIsMainList;
+                image.GestureRecognizers.Add(tapIsImage);
 
                 var label1 = new Label
                 {
@@ -224,6 +230,41 @@ namespace CryptoStatsX_MAUI
             TotalAssets.Text = "$" + InsertSeparator(TotalAssetsCount.ToString());
         }
 
+        private void TapCryptoIsMainList(object sender, TappedEventArgs e)
+        {
+            Label lab = sender as Label;
+
+        }
+
+        //private void PunTapOrPressIsListMainCrypto(object sender, PanUpdatedEventArgs e)
+        //{
+        //    DXBorder border = sender as DXBorder;
+        //    switch (e.StatusType)
+        //    {
+        //        case GestureStatus.Started:
+        //            // Обработка начала касания
+        //            break;
+        //        case GestureStatus.Running:
+
+        //            if (e.TotalX > 0)
+        //            {
+        //                // Обработка свайпа вправо
+        //            }
+        //            else if (e.TotalX < 0)
+        //            {
+        //                // Обработка свайпа влево
+        //            }
+
+        //            break;
+        //        case GestureStatus.Completed:
+
+        //            break;
+        //        case GestureStatus.Canceled:
+        //            // Обработка отмены касания
+        //            break;
+        //    }
+        //}
+
         //метод для загрузки списка всех криптовалют
         private async Task GetListAllToken()
         {
@@ -298,10 +339,11 @@ namespace CryptoStatsX_MAUI
                 case GestureStatus.Running:
                     if (isPanning)
                     {
-                        // Сдвигаем элементы вместе с движением пальца
-                        //element.TranslationX += e.TotalX;
-                        element.TranslationY += e.TotalY;
-                        PageTransaction.TranslationY += e.TotalY;
+                        if (e.TotalY > 0)
+                        {
+                            element.TranslationY += e.TotalY;
+                            PageTransaction.TranslationY += e.TotalY;
+                        }
                         // Проверяем, сдвинулся ли элемент вниз более чем на 50%
                         if (element.TranslationY > (element.Height * 0.5) && PageTransaction.TranslationY > (PageTransaction.Height * 0.5))
                         {
@@ -333,6 +375,63 @@ namespace CryptoStatsX_MAUI
                     {
                         element.TranslateTo(element.TranslationX, 0, 250); // Возвращаем элемент
                         PageTransaction.TranslateTo(PageTransaction.TranslationX, 0, 250); // Возвращаем элемент
+                    }
+                    break;
+            }
+        }
+        async void OnPanUpdatedAssetsCoin(object sender, PanUpdatedEventArgs e)
+        {
+            var element = (VisualElement)sender;
+            
+            switch (e.StatusType)
+            {
+                case GestureStatus.Started:
+                    // Сохраняем изначальные значения TranslationX и TranslationY
+                    isPanning = true;
+                    break;
+
+                case GestureStatus.Running:
+                    if (isPanning)
+                    {
+                        // Сдвигаем элементы вместе с движением пальца
+                        //element.TranslationX += e.TotalX;
+                        if (e.TotalY > 0)
+                        {
+                            element.TranslationY += e.TotalY;
+                            PageAssetsCoin.TranslationY += e.TotalY;
+                        }
+                        
+                        // Проверяем, сдвинулся ли элемент вниз более чем на 50%
+                        if (element.TranslationY > (element.Height * 0.5) && PageAssetsCoin.TranslationY > (PageAssetsCoin.Height * 0.5))
+                        {
+                            isPanning = false; // Прекращаем обработку перемещения
+
+                            // Скрываем элементы с помощью анимации
+                            await Task.WhenAll(
+                                element.TranslateTo(element.TranslationX, PageAssetsCoin.Height, 250), // Скрываем элемент
+                                PageAssetsCoin.TranslateTo(PageAssetsCoin.TranslationX, PageAssetsCoin.Height, 250) // Скрываем элемент
+                            );
+
+                            await Task.Delay(100);
+
+                            // Скрываем элементы с помощью анимации, если они видимы (это важно, чтобы избежать мигания элементов)
+                            if (MainPageAssetsCoin.IsVisible)
+                            {
+                                // Скрываем элементы
+                                MainPageAssetsCoin.IsVisible = false;
+                            }
+                        }
+                    }
+                    break;
+
+                case GestureStatus.Canceled:
+                case GestureStatus.Completed:
+                    // Если жест завершился до того, как элемент скрылся за экраном,
+                    // возвращаем его на исходное место
+                    if (isPanning)
+                    {
+                        element.TranslateTo(element.TranslationX, 0, 250); // Возвращаем элемент
+                        PageAssetsCoin.TranslateTo(PageAssetsCoin.TranslationX, 0, 250); // Возвращаем элемент
                     }
                     break;
             }
@@ -606,7 +705,12 @@ namespace CryptoStatsX_MAUI
             ListCoinsAndSearch.IsVisible = false;
         }
 
-        
+        private void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
+        {
+
+        }
+
+
 
 
 
