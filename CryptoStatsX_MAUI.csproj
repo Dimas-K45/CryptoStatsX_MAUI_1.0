@@ -39,6 +39,9 @@
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 	<ItemGroup>
+	  <None Remove="Resources\Images\SvgAssetsCoin\back.svg" />
+	  <None Remove="Resources\Images\SvgAssetsCoin\delete.svg" />
+	  <None Remove="Resources\Images\SvgAssetsCoin\edit.svg" />
 	  <None Remove="Resources\Images\SvgMainPage\arrow_back.svg" />
 	  <None Remove="Resources\Images\SvgMainPage\error_circle.svg" />
 	  <None Remove="Resources\Images\SvgMainPage\info_circle.svg" />
@@ -54,6 +57,9 @@
 	  <None Remove="Resources\Images\SvgTransaction\yes.svg" />
 	</ItemGroup>
 	<ItemGroup>
+	  <MauiImage Include="Resources\Images\SvgAssetsCoin\back.svg" />
+	  <MauiImage Include="Resources\Images\SvgAssetsCoin\delete.svg" />
+	  <MauiImage Include="Resources\Images\SvgAssetsCoin\edit.svg" />
 	  <MauiImage Include="Resources\Images\SvgMainPage\arrow_back.svg" />
 	  <MauiImage Include="Resources\Images\SvgMainPage\error_circle.svg" />
 	  <MauiImage Include="Resources\Images\SvgMainPage\info_circle.svg" />

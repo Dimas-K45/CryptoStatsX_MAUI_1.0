@@ -163,6 +163,49 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             }
         }
 
+        public List<TokensTransactionBuy> GetListTokensTransactionBuy()
+        {
+            var data = db.Table<TokensTransactionBuy>();
+            List<TokensTransactionBuy> tokensTransactionBuy = new List<TokensTransactionBuy>();
+            foreach (var item in data)
+            {
+                tokensTransactionBuy.Add(item);
+            }
+            return tokensTransactionBuy;
+        }
+        public List<TokensTransactionSale> GetListTokensTransactionSale()
+        {
+            var data = db.Table<TokensTransactionSale>();
+            List<TokensTransactionSale> tokensTransactionSale = [.. data];
+            return tokensTransactionSale;
+        }
+        public List<TokensTransactionBuy> GetListTokensTransactionBuyToTokenId(string TokenId)
+        {
+            var data = db.Table<TokensTransactionBuy>();
+            List<TokensTransactionBuy> tokensTransactionBuy = new List<TokensTransactionBuy>();
+            foreach (var item in data)
+            {
+                if (item.TokenId == TokenId)
+                {
+                    tokensTransactionBuy.Add(item);
+                }
+            }
+            return tokensTransactionBuy;
+        }
+        public List<TokensTransactionSale> GetListTokensTransactionSaleToTokenId(string TokenId)
+        {
+            var data = db.Table<TokensTransactionSale>();
+            List<TokensTransactionSale> tokensTransactionSale = [.. data];
+            foreach (var item in data)
+            {
+                if (item.TokenId == TokenId)
+                {
+                    tokensTransactionSale.Add(item);
+                }
+            }
+            return tokensTransactionSale;
+        }
+
         public List<TokensAssets> GetListTokens()
         {
             var data = db.Table<TokensAssets>();
@@ -190,6 +233,33 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
         {
             var token = db.Get<TokensAssets>(TokenID);
             return token;
+        }
+
+        public void DelTransactionBuyIsId(int id)
+        {
+            var existingItem = db.Table<TokensTransactionBuy>().FirstOrDefault(x => x.Id == id);
+            if (existingItem != null)
+            {
+                db.Delete(existingItem);
+            }
+        }
+        public TokensTransactionBuy GetTransactionBuyIsId(int id)
+        {
+            var existingItem = db.Table<TokensTransactionBuy>().FirstOrDefault(x => x.Id == id);
+            return existingItem;
+        }
+        public void DelTransactionSaleIsId(int id)
+        {
+            var existingItem = db.Table<TokensTransactionSale>().FirstOrDefault(x => x.Id == id);
+            if (existingItem != null)
+            {
+                db.Delete(existingItem);
+            }
+        }
+        public TokensTransactionSale GetTransactionSaleIsId(int id)
+        {
+            var existingItem = db.Table<TokensTransactionSale>().FirstOrDefault(x => x.Id == id);
+            return existingItem;
         }
 
         public void DelAll()
