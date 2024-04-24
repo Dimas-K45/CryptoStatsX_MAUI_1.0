@@ -20,6 +20,9 @@ namespace CryptoStatsX_MAUI
         int ActiveBagTokensId = 1;
         List<AssetsPortfileList> ListPortfile = [];
         Dictionary<string,object> ActiveInfoTokenTransaction = [];
+
+        ObservableCollection<ListToken> dataSource = new ObservableCollection<ListToken>();
+        int positionDataSourse = 20;
         public MainPage()
         {
             InitializeComponent();
@@ -28,15 +31,13 @@ namespace CryptoStatsX_MAUI
             //SQL.AddBagToken("Test2", "");
 
             //SQL.DelAll();
-
-            List<string> Tokens = new List<string>();
-            foreach (var t in SQL.GetListTokens())
-            {
-                Tokens.Add(t.TokenID);
-            }
+            //PageAssetsCoin.HeightRequest = PageAssetsCoin.Height + 300;
+            //gg.HeightRequest = gg.Height + 300;
+            
+            
             try
             {
-                GetCryptoTokensMainMenu(Tokens);
+                InitializeMainCryptoList();
                 _ = GetListAllToken();
                 //GetCryptoTokensAssetsCoin(SQL.GetListTokensTransactionBuy(), SQL.GetListTokensTransactionSale());
             }
@@ -46,6 +47,17 @@ namespace CryptoStatsX_MAUI
             }
             
         }
+
+        private void InitializeMainCryptoList()
+        {
+            List<string> Tokens = new List<string>();
+            foreach (var t in SQL.GetListTokens())
+            {
+                Tokens.Add(t.TokenID);
+            }
+            GetCryptoTokensMainMenu(Tokens);
+        }
+
         
         static string InsertSeparator(string input)
         {
@@ -74,164 +86,180 @@ namespace CryptoStatsX_MAUI
         //добавление карточки токена на главной странице
         private async void GetCryptoTokensMainMenu(List<string> TokenIDs)
         {
-            APICoinGecko.Coin[] InfoTokens = await APICoinGecko.GetTokensInfoToIDs(TokenIDs);
-            double? TotalAssetsCount = 0;
-            StackMainTokens.Children.Clear();
-            foreach (var Token in InfoTokens)
+            if (TokenIDs.Count <= 0)
             {
-                var tokendb = SQL.GetTokenToId(Token.Id);
-                TotalAssetsCount += Token.current_price;
-                if (tokendb.TokenCount <= 0)
+                StackMainTokens.Children.Add(new Label
                 {
-                    continue;
-                }
-                var dxBorder = new DXBorder
-                {
-                    Margin = new Thickness(0, 6, 0, 0),
-                    HeightRequest = 70,
-                    BackgroundColor = Color.Parse("#282828"),
-                    CornerRadius = 10
-                };
-
-                var grid = new Grid();
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
-                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
-                
-
-                var image = new Image
-                {
-                    HeightRequest = 35,
-                    WidthRequest = 35,
-                    Source = Token.Image,
-                    Aspect = Aspect.Fill
-                };
-                Grid.SetRowSpan(image, 2);
-                grid.Children.Add(image);
-
-                var tapIsImage = new TapGestureRecognizer();
-                tapIsImage.Tapped += TapCryptoIsMainList;
-                image.GestureRecognizers.Add(tapIsImage);
-                image.AutomationId = $"MainImg/{tokendb.TokenID}";
-
-                var label1 = new Label
-                {
-                    VerticalOptions = LayoutOptions.Center,
+                    Text = "Нет активов",
                     FontSize = 20,
-                    TextColor = Color.Parse("#989898"),
-                    Text = Token.Symbol.ToUpper(),
-                    FontAttributes = FontAttributes.Bold
-                };
-                Grid.SetColumn(label1, 1);
-                grid.Children.Add(label1);
-
-                var label2 = new Label
-                {
-                    VerticalOptions = LayoutOptions.Center,
-                    FontSize = 16,
                     TextColor = Colors.White,
-                    Text = "$" + InsertSeparator(Token.current_price.ToString()),
-                    FontAttributes = FontAttributes.Bold
-                };
-                Grid.SetColumn(label2, 1);
-                Grid.SetRow(label2, 1);
-                grid.Children.Add(label2);
-
-                var label3 = new Label
-                {
-                    HorizontalOptions = LayoutOptions.Start,
-                    VerticalOptions = LayoutOptions.Center,
-                    FontSize = 15,
-                    TextColor = Color.Parse("#24FF00"),
-                    Text = InsertSeparator((((Token.current_price - tokendb.AVGPrice) / Token.current_price)*100).ToString()) +"%",
-                    FontAttributes = FontAttributes.Bold
-                };
-                if (label3.Text[0] == '-')
-                {
-                    label3.TextColor = Color.Parse("#FF0000");
-                }
-                Grid.SetColumn(label3, 2);
-                grid.Children.Add(label3);
-
-                var dxBorder2 = new DXBorder
-                {
-                    CornerRadius = 15,
-                    HorizontalOptions = LayoutOptions.Start,
-                    VerticalOptions = LayoutOptions.Start,
-                    BackgroundColor = Color.Parse("#141414"),
-                    Padding = new Thickness(5, 2, 5, 2)
-                };
-                Grid.SetColumn(dxBorder2, 2);
-                Grid.SetRow(dxBorder2, 1);
-                grid.Children.Add(dxBorder2);
-
-                var label4 = new Label
-                {
-                    FontSize = 15,
-                    TextColor = Color.Parse("#24FF00"),
-                    Text = "$" + InsertSeparator((((tokendb.AVGPrice / 100) * (((Token.current_price - tokendb.AVGPrice) / Token.current_price) * 100))* tokendb.TokenCount).ToString()),
-                    FontAttributes = FontAttributes.Bold
-                };
-                if (label4.Text[1] == '-')
-                {
-                    label4.TextColor = Color.Parse("#FF0000");
-                }
-                if (label4.Text.Length > 10)
-                {
-                    label4.FontSize = 12;
-                }
-                dxBorder2.Content = label4;
-
-                var label5 = new Label
-                {
-                    Margin = new Thickness(0, 0, 5, 0),
-                    HorizontalOptions = LayoutOptions.Center,
-                    VerticalOptions = LayoutOptions.Center,
-                    FontSize = 15,
-                    TextColor = Colors.White,
-                    Text = InsertSeparator(tokendb.TokenCount.ToString()),
-                    FontAttributes = FontAttributes.Bold
-                };
-                Grid.SetColumn(label5, 3);
-                grid.Children.Add(label5);
-
-                var dxBorder3 = new DXBorder
-                {
-                    Margin = new Thickness(0, 0, 5, 0),
-                    CornerRadius = 15,
-                    HorizontalOptions = LayoutOptions.Center,
-                    VerticalOptions = LayoutOptions.Start,
-                    BackgroundColor = Color.Parse("#141414"),
-                    Padding = new Thickness(5, 2, 5, 2)
-                };
-                Grid.SetColumn(dxBorder3, 3);
-                Grid.SetRow(dxBorder3, 1);
-                grid.Children.Add(dxBorder3);
-
-                var label6 = new Label
-                {
-                    FontSize = 15,
-                    TextColor = Colors.White,
-                    Text = "$" + InsertSeparator((tokendb.TokenCount * Token.current_price).ToString()),
-                    FontAttributes = FontAttributes.Bold
-                };
-                if (label6.Text.Length > 10)
-                {
-                    label6.FontSize = 12;
-                }
-                dxBorder3.Content = label6;
-
-                dxBorder.Content = grid;
-
-                StackMainTokens.Children.Add(dxBorder);
+                    HorizontalOptions = LayoutOptions.Center
+                });
             }
+            else
+            {
+                APICoinGecko.Coin[] InfoTokens = await APICoinGecko.GetTokensInfoToIDs(TokenIDs);
+                double? TotalAssetsCount = 0;
+                StackMainTokens.Children.Clear();
 
-            TotalAssets.Text = "$" + InsertSeparator(TotalAssetsCount.ToString());
+                foreach (var Token in InfoTokens)
+                {
+                    var tokendb = SQL.GetTokenToId(Token.Id);
+                    TotalAssetsCount += tokendb.TokenCount * Token.current_price;
+                    if (tokendb.TokenCount <= 0)
+                    {
+                        continue;
+                    }
+                    var dxBorder = new DXBorder
+                    {
+                        Margin = new Thickness(0, 6, 0, 0),
+                        HeightRequest = 70,
+                        BackgroundColor = Color.Parse("#282828"),
+                        CornerRadius = 10
+                    };
+
+                    var grid = new Grid();
+                    grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+                    grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
+                    grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
+
+
+                    var image = new Image
+                    {
+                        HeightRequest = 35,
+                        WidthRequest = 35,
+                        Source = Token.Image,
+                        Aspect = Aspect.Fill
+                    };
+                    Grid.SetRowSpan(image, 2);
+                    grid.Children.Add(image);
+
+                    var tapIsImage = new TapGestureRecognizer();
+                    tapIsImage.Tapped += TapCryptoIsMainList;
+                    image.GestureRecognizers.Add(tapIsImage);
+                    image.AutomationId = $"MainImg/{tokendb.TokenID}";
+
+                    var label1 = new Label
+                    {
+                        VerticalOptions = LayoutOptions.Center,
+                        FontSize = 20,
+                        TextColor = Color.Parse("#989898"),
+                        Text = Token.Symbol.ToUpper(),
+                        FontAttributes = FontAttributes.Bold
+                    };
+                    Grid.SetColumn(label1, 1);
+                    grid.Children.Add(label1);
+
+                    var label2 = new Label
+                    {
+                        VerticalOptions = LayoutOptions.Center,
+                        FontSize = 16,
+                        TextColor = Colors.White,
+                        Text = "$" + InsertSeparator(Token.current_price.ToString()),
+                        FontAttributes = FontAttributes.Bold
+                    };
+                    Grid.SetColumn(label2, 1);
+                    Grid.SetRow(label2, 1);
+                    grid.Children.Add(label2);
+
+                    var label3 = new Label
+                    {
+                        HorizontalOptions = LayoutOptions.Start,
+                        VerticalOptions = LayoutOptions.Center,
+                        FontSize = 15,
+                        TextColor = Color.Parse("#24FF00"),
+                        Text = InsertSeparator((((Token.current_price - tokendb.AVGPrice) / Token.current_price) * 100).ToString()) + "%",
+                        FontAttributes = FontAttributes.Bold
+                    };
+                    if (label3.Text[0] == '-')
+                    {
+                        label3.TextColor = Color.Parse("#FF0000");
+                    }
+                    Grid.SetColumn(label3, 2);
+                    grid.Children.Add(label3);
+
+                    var dxBorder2 = new DXBorder
+                    {
+                        CornerRadius = 15,
+                        HorizontalOptions = LayoutOptions.Start,
+                        VerticalOptions = LayoutOptions.Start,
+                        BackgroundColor = Color.Parse("#141414"),
+                        Padding = new Thickness(5, 2, 5, 2)
+                    };
+                    Grid.SetColumn(dxBorder2, 2);
+                    Grid.SetRow(dxBorder2, 1);
+                    grid.Children.Add(dxBorder2);
+
+                    var label4 = new Label
+                    {
+                        FontSize = 15,
+                        TextColor = Color.Parse("#24FF00"),
+                        Text = "$" + InsertSeparator((((tokendb.AVGPrice / 100) * (((Token.current_price - tokendb.AVGPrice) / Token.current_price) * 100)) * tokendb.TokenCount).ToString()),
+                        FontAttributes = FontAttributes.Bold
+                    };
+                    if (label4.Text[1] == '-')
+                    {
+                        label4.TextColor = Color.Parse("#FF0000");
+                    }
+                    if (label4.Text.Length > 10)
+                    {
+                        label4.FontSize = 12;
+                    }
+                    dxBorder2.Content = label4;
+
+                    var label5 = new Label
+                    {
+                        Margin = new Thickness(0, 0, 5, 0),
+                        HorizontalOptions = LayoutOptions.Center,
+                        VerticalOptions = LayoutOptions.Center,
+                        FontSize = 15,
+                        TextColor = Colors.White,
+                        Text = InsertSeparator(tokendb.TokenCount.ToString()),
+                        FontAttributes = FontAttributes.Bold
+                    };
+                    Grid.SetColumn(label5, 3);
+                    grid.Children.Add(label5);
+
+                    var dxBorder3 = new DXBorder
+                    {
+                        Margin = new Thickness(0, 0, 5, 0),
+                        CornerRadius = 15,
+                        HorizontalOptions = LayoutOptions.Center,
+                        VerticalOptions = LayoutOptions.Start,
+                        BackgroundColor = Color.Parse("#141414"),
+                        Padding = new Thickness(5, 2, 5, 2)
+                    };
+                    Grid.SetColumn(dxBorder3, 3);
+                    Grid.SetRow(dxBorder3, 1);
+                    grid.Children.Add(dxBorder3);
+
+                    var label6 = new Label
+                    {
+                        FontSize = 15,
+                        TextColor = Colors.White,
+                        Text = "$" + InsertSeparator((tokendb.TokenCount * Token.current_price).ToString()),
+                        FontAttributes = FontAttributes.Bold
+                    };
+                    if (label6.Text.Length > 10)
+                    {
+                        label6.FontSize = 12;
+                    }
+                    dxBorder3.Content = label6;
+
+                    dxBorder.Content = grid;
+
+                    StackMainTokens.Children.Add(dxBorder);
+                }
+
+                TotalAssets.Text = "$" + InsertSeparator(TotalAssetsCount.ToString());
+            }
+            
         }
 
+        //добавление транзакци по монете
         private void GetCryptoTokensAssetsCoin(List<TokensTransactionBuy> buyList, List<TokensTransactionSale> saleList)
         {
             var combinedAndSorted = buyList.Cast<object>()
@@ -544,9 +572,9 @@ namespace CryptoStatsX_MAUI
         {
             Image img = sender as Image;
             string id = img.AutomationId.ToString().Split('/')[1];
-            TokensTransactionSale activeToken = SQL.GetTransactionSaleIsId(Convert.ToInt32(id));
+            TokensTransactionBuy activeToken = SQL.GetTransactionBuyIsId(Convert.ToInt32(id));
 
-            SQL.DelTransactionBuyIsId(Convert.ToInt32(id));
+            
             foreach (DXBorder dxborder in LayoutAssetsCoin.Children)
             {
                 if (dxborder.AutomationId == $"buy/{id}/dxBorder")
@@ -558,15 +586,34 @@ namespace CryptoStatsX_MAUI
                     break;
                 }
             }
-            SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), activeToken.Price, activeToken.Count, activeToken.Date, activeToken.IdBagTokens, false);
+            SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), activeToken.Count, activeToken.IdBagTokens);
+            SQL.DelTransactionBuyIsId(Convert.ToInt32(id));
+            InitializeMainCryptoList();
+            if (LayoutAssetsCoin.Children.Count <= 0)
+            {
+                // Скрываем элементы с помощью анимации
+                await Task.WhenAll(
+                swipeLabelAssetsCoin.TranslateTo(swipeLabelAssetsCoin.TranslationX, PageAssetsCoin.Height, 250), // Скрываем элемент
+                    PageAssetsCoin.TranslateTo(PageAssetsCoin.TranslationX, PageAssetsCoin.Height, 250) // Скрываем элемент
+                );
+
+                await Task.Delay(100);
+
+                // Скрываем элементы с помощью анимации, если они видимы (это важно, чтобы избежать мигания элементов)
+                if (MainPageAssetsCoin.IsVisible)
+                {
+                    // Скрываем элементы
+                    MainPageAssetsCoin.IsVisible = false;
+                }
+            }
         }
         private async void TapIsdeleteImageSale(object sender, TappedEventArgs e)
         {
             Image img = sender as Image;
             string id = img.AutomationId.ToString().Split('/')[1];
-            TokensTransactionBuy activeToken = SQL.GetTransactionBuyIsId(Convert.ToInt32(id));
+            TokensTransactionSale activeToken = SQL.GetTransactionSaleIsId(Convert.ToInt32(id));
 
-            SQL.DelTransactionBuyIsId(Convert.ToInt32(id));
+            
             foreach (DXBorder dxborder in LayoutAssetsCoin.Children)
             {
                 if (dxborder.AutomationId == $"sale/{id}/dxBorder")
@@ -579,7 +626,9 @@ namespace CryptoStatsX_MAUI
                 }
             }
 
-            SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), activeToken.Price, activeToken.Count, activeToken.Date, activeToken.IdBagTokens);
+            SQL.UpDateTokenPlus(ActiveInfoTokenTransaction["id"].ToString(), activeToken.Count, activeToken.IdBagTokens);
+            SQL.DelTransactionSaleIsId(Convert.ToInt32(id));
+            InitializeMainCryptoList();
         }
 
         private void TapIsBackImageAssetsCoinSale(object sender, TappedEventArgs e)
@@ -684,7 +733,6 @@ namespace CryptoStatsX_MAUI
             }
         }
 
-
         private async void TapCryptoIsMainList(object sender, TappedEventArgs e)
         {
             Image img = sender as Image;
@@ -721,48 +769,26 @@ namespace CryptoStatsX_MAUI
             
         }
 
-        //private void PunTapOrPressIsListMainCrypto(object sender, PanUpdatedEventArgs e)
-        //{
-        //    DXBorder border = sender as DXBorder;
-        //    switch (e.StatusType)
-        //    {
-        //        case GestureStatus.Started:
-        //            // Обработка начала касания
-        //            break;
-        //        case GestureStatus.Running:
-
-        //            if (e.TotalX > 0)
-        //            {
-        //                // Обработка свайпа вправо
-        //            }
-        //            else if (e.TotalX < 0)
-        //            {
-        //                // Обработка свайпа влево
-        //            }
-
-        //            break;
-        //        case GestureStatus.Completed:
-
-        //            break;
-        //        case GestureStatus.Canceled:
-        //            // Обработка отмены касания
-        //            break;
-        //    }
-        //}
-
+        
         //метод для загрузки списка всех криптовалют
         private async Task GetListAllToken()
         {
-            var dataSource = new ObservableCollection<ListToken>();
             CryptoCurrency[] coins = await APICoinGecko.GetListTokenS();
-            
-            foreach (var coin in coins)
+
+            //for (int i = 0; i < coins.Length; i++)
+            //{
+            //    dataSource.Add(new ListToken { Id = $"{coins[i].Id}", Name = $"{coins[i].Name} ({coins[i].Symbol.ToUpper()})", Symbol = coins[i].Symbol, Price = (double)coins[i].Current_price, Image = coins[i].Image.ToString() });
+            //}
+
+            for (int i = 0; i < 20; i++)
             {
-                dataSource.Add(new ListToken {Id = $"{coin.Id}", Name = $"{coin.Name} ({coin.Symbol.ToUpper()})", Symbol = coin.Symbol, Price = (double)coin.Current_price, Image = coin.Image.ToString() });
+                dataSource.Add(new ListToken { Id = $"{coins[i].Id}", Name = $"{coins[i].Name} ({coins[i].Symbol.ToUpper()})", Symbol = coins[i].Symbol, Price = (double)coins[i].Current_price, Image = coins[i].Image.ToString() });
             }
-            
+
             DataGridListTokens.ItemsSource = dataSource;
         }
+        
+
 
         // клик по добавить транзакцию в меню плюса
         private void TapToAddTransaction(object sender, TappedEventArgs e)
@@ -885,7 +911,7 @@ namespace CryptoStatsX_MAUI
                         var topOfElementInScreen = element.Y + element.TranslationY;
 
                         // Проверяем, достиг ли верхний край элемента верхнего края экрана
-                        bool isAtTopEdge = topOfElementInScreen <= 5;
+                        bool isAtTopEdge = topOfElementInScreen <= 10;
 
                         var topOfElementInScreen2 = PageAssetsCoin.Y + PageAssetsCoin.TranslationY;
 
@@ -894,25 +920,15 @@ namespace CryptoStatsX_MAUI
                         {
                             if (e.TotalY >= 0)
                             {
-                                element.TranslationY += e.TotalY;
+                                
                                 PageAssetsCoin.TranslationY += e.TotalY;
+                                element.TranslationY += e.TotalY;
                                 BorderIsFullPageAssetsCoin.Opacity = 0;
                             }
                             else
                             {
                                 isPanning = false;
                                 BorderIsFullPageAssetsCoin.Opacity = 1;
-                                // Получаем размеры экрана
-                                var screenHeight = DeviceDisplay.MainDisplayInfo.Height;
-
-                                // Получаем координаты Y нижнего края элемента относительно экрана
-                                var bottomOfElementInScreen = PageAssetsCoin.Y + PageAssetsCoin.TranslationY + PageAssetsCoin.Height;
-
-                                // Вычисляем расстояние от нижнего края элемента до нижнего края экрана
-                                var distanceToBottom = screenHeight - bottomOfElementInScreen;
-
-                                // Устанавливаем высоту элемента равной расстоянию от нижнего края элемента до нижнего края экрана
-                                PageAssetsCoin.HeightRequest += distanceToBottom;
                             }
                             
                         }
@@ -968,12 +984,7 @@ namespace CryptoStatsX_MAUI
         {
             void ClosePage()
             {
-                List<string> Tokens = new List<string>();
-                foreach (var t in SQL.GetListTokens())
-                {
-                    Tokens.Add(t.TokenID);
-                }
-                GetCryptoTokensMainMenu(Tokens);
+                InitializeMainCryptoList();
                 MainPageTransaction.IsVisible = false;
             }
 
@@ -1236,6 +1247,34 @@ namespace CryptoStatsX_MAUI
         {
 
         }
+
+        private async void DataGridListTokens_Scrolled(object sender, DataGridViewScrolledEventArgs e)
+        {
+
+            // Получение текущего смещения (вертикальной позиции прокрутки)
+            double offsetY = e.OffsetY;
+
+            // Получение высоты всего контента
+            double extentHeight = e.ExtentHeight;
+
+            // Получение высоты видимой области (окна просмотра)
+            double viewportHeight = e.ViewportHeight;
+
+            // Проверка, достигнут ли конец списка
+            bool scrolledToEnd = offsetY + viewportHeight >= extentHeight;
+            if (scrolledToEnd)
+            {
+                CryptoCurrency[] coins = await APICoinGecko.GetListTokenS();
+
+                for (int i = positionDataSourse; i < positionDataSourse+10 && i < coins.Length; i++)
+                {
+                    dataSource.Add(new ListToken { Id = $"{coins[i].Id}", Name = $"{coins[i].Name} ({coins[i].Symbol.ToUpper()})", Symbol = coins[i].Symbol, Price = (double)coins[i].Current_price, Image = coins[i].Image.ToString() });
+                }
+                positionDataSourse += 10;
+            }
+        }
+
+
 
 
 

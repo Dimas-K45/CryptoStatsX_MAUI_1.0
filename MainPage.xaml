@@ -106,9 +106,25 @@
                         <TapGestureRecognizer Tapped="TapBackIsListCoinsAndSearch" />
                     </Image.GestureRecognizers>
                 </Image>
+                
                 <dxe:TextEdit x:Name="TextEditListCoinsAndSearch" TextChanged="SearchListCrypto" PlaceholderText="Поиск" FocusedBorderColor="Gray" IconVerticalAlignment="Center" TextColor="White" CornerRadius="20" WidthRequest="200" HeightRequest="40" TextVerticalAlignment="Center" BoxPadding="10,0,10,0"/>
                 <StackLayout Grid.Row="1">
-                    <dxg:DataGridView x:Name="DataGridListTokens" BackgroundColor="#161616" SelectionMode="None" IsColumnHeaderVisible="False">
+                    <!--<dxcv:DXCollectionView x:Name="DataGridListTokens" Scrolled="DataGridListTokens_Scrolled" BackgroundColor="#161616" SelectionMode="None">
+                        <dxcv:DXCollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="50,*">
+                                    <Image Source="{Binding Image}" Margin="10" VerticalOptions="Center"/>
+                                    <Label AutomationId="{Binding Id}" Grid.Column="1" FontSize="20" VerticalOptions="Center" Text="{Binding Name}" HorizontalOptions="Start" Margin="10,0,0,0" TextColor="#fff">
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="TapGetAddTransaction" />
+                                        </Label.GestureRecognizers>
+                                    </Label>
+                                    <Border Grid.ColumnSpan="2" VerticalOptions="End" Margin="15,0,15,0" HeightRequest="1" BackgroundColor="#2D2D2D"/>
+                                </Grid>
+                            </DataTemplate>
+                        </dxcv:DXCollectionView.ItemTemplate>
+                    </dxcv:DXCollectionView>-->
+                    <dxg:DataGridView x:Name="DataGridListTokens" Scrolled="DataGridListTokens_Scrolled" RestoreCollectionsMode="Apply" AutoGenerateColumnsMode="Auto" BackgroundColor="#161616" SelectionMode="None" IsColumnHeaderVisible="False">
                         <dxg:DataGridView.GroupRowAppearance>
                             <dxg:GroupRowAppearance BackgroundColor="Transparent" BottomBorderColor="Transparent" BorderColor="Transparent"/>
                         </dxg:DataGridView.GroupRowAppearance>
@@ -235,8 +251,8 @@
                         <PanGestureRecognizer PanUpdated="OnPanUpdatedAssetsCoin" />
                     </Label.GestureRecognizers>
                 </Label>
-                <dx:DXBorder x:Name="PageAssetsCoin" CornerRadius="20,20,0,0" Opacity="1" Grid.Row="1" Grid.RowSpan="2" Background="#161616">
-                    <Grid RowDefinitions="*,2*,*,1.5*,1.5*,1,9*">
+                <dx:DXBorder x:Name="PageAssetsCoin" Margin="0,0,0,-160" CornerRadius="20,20,0,0" Opacity="1" Grid.Row="1" Grid.RowSpan="2" Background="#161616">
+                    <Grid x:Name="gg" RowDefinitions="*,2*,*,1.5*,1.5*,1,15*">
                         <Label x:Name="LabelSymbolToAssetcCoin" FontSize="18" Text="Накопления BTC" HorizontalOptions="Center" TextColor="#7E7E7E" />
                         <dx:DXBorder Grid.Row="1" BackgroundColor="#303030" Margin="30,0,30,0" CornerRadius="15">
                             <Grid RowDefinitions="*,*" ColumnDefinitions="*,1,*" VerticalOptions="Center">

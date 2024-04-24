@@ -57,7 +57,6 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             {
                 existingItem.TokenCount += Count;
                 db.Update(existingItem);
-                //db.Backup("Download/");
                 return true;
             }
             else
@@ -77,10 +76,6 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
                 if (existingItem.TokenCount - Count >= 0)
                 {
                     existingItem.TokenCount = existingItem.TokenCount - Count;
-                    Console.WriteLine();
-                    Console.WriteLine(existingItem.TokenCount);
-                    Console.WriteLine(Count);
-                    Console.WriteLine();
                     db.Update(existingItem);
                     return true;
                 }
@@ -88,15 +83,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             }
             else
             {
-                AddDataToken(TokenId, 0, 1, BagTokensId);
-                var existingItem2 = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId);
-                if (existingItem2.TokenCount - Count >= 0)
-                {
-                    existingItem2.TokenCount -= Count;
-                    db.Update(existingItem2);
-                    return true;
-                }
-                else return false;
+                return false;
             }
         }
         public void AddTransactionBuy(string TokenId, double Price, double Count, DateTime Date, int IdBagTokens)
@@ -264,7 +251,10 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
 
         public void DelAll()
         {
-            db.Query<TokensAssets>($"DELETE FROM BagTokens_1");
+            db.DeleteAll<TokensTransactionSale>();
+            db.DeleteAll<TokensTransactionBuy>();
+            db.DeleteAll<TokensAssets>();
+            //db.Query<TokensAssets>($"DELETE FROM BagTokens_1");
         }
     }
 }
