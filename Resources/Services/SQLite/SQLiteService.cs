@@ -13,7 +13,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
     {
         private static string dbPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-        "Crypto.db3");
+        "Crypto2.db3");
 
         private SQLiteConnection db = new SQLiteConnection(dbPath);
 
@@ -40,6 +40,8 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             };
             db.Insert(bagTokens);
         }
+
+        
         public void AddBagToken(string Name, string Image)
         {
             AssetsPortfileList bagTokens = new AssetsPortfileList
@@ -52,7 +54,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
 
         public bool UpDateTokenPlus(string TokenId, double Count, int BagTokensId)
         {
-            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId);
+            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId && x.IdBagTokens == BagTokensId);
             if (existingItem != null)
             {
                 existingItem.TokenCount += Count;
@@ -62,7 +64,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             else
             {
                 AddDataToken(TokenId, 0, 0, BagTokensId);
-                var existingItem2 = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId);
+                var existingItem2 = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId && x.IdBagTokens == BagTokensId);
                 existingItem2.TokenCount += Count;
                 db.Update(existingItem2);
                 return true;
@@ -70,7 +72,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
         }
         public bool UpDateTokenMinus(string TokenId, double Count, int BagTokensId)
         {
-            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId);
+            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId && x.IdBagTokens == BagTokensId);
             if (existingItem != null)
             {
                 if (existingItem.TokenCount - Count >= 0)
@@ -86,7 +88,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
                 return false;
             }
         }
-        public void AddTransactionBuy(string TokenId, double Price, double Count, DateTime Date, int IdBagTokens)
+        public void AddTransactionBuy(string TokenId, double Price, double Count, DateTime Date, int BagTokensId)
         {
             TokensTransactionBuy bagTokens = new TokensTransactionBuy
             {
@@ -94,7 +96,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
                 Price = Price,
                 Count = Count,
                 Date = Date,
-                IdBagTokens = IdBagTokens
+                IdBagTokens = BagTokensId
             };
             db.Insert(bagTokens);
             
@@ -103,10 +105,10 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
                 TokenID = TokenId,
                 TokenCount = Count,
                 AVGPrice = Price,
-                IdBagTokens = IdBagTokens
+                IdBagTokens = BagTokensId
             };
             // Проверяем, существует ли запись с указанным TokenID
-            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == tokensAssets.TokenID);
+            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == tokensAssets.TokenID && x.IdBagTokens == BagTokensId);
 
             if (existingItem == null)
             {
@@ -115,16 +117,23 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             }
             else
             {
+                var trans = db.Table<TokensTransactionBuy>().Where(x => x.TokenId == TokenId && x.IdBagTokens == BagTokensId);
+
                 // Если запись существует, обновляем существующие данные
                 existingItem.TokenCount += tokensAssets.TokenCount;
-                existingItem.AVGPrice = ((existingItem.AVGPrice * (db.Table<TokensTransactionBuy>().Count(x => x.TokenId == TokenId)-1)) + tokensAssets.AVGPrice) / db.Table<TokensTransactionBuy>().Count(x => x.TokenId == TokenId);
+                double summTokenTrans = 0;
+                foreach (var item in trans)
+                {
+                    summTokenTrans += item.Price * item.Count;
+                }
+                existingItem.AVGPrice = summTokenTrans / existingItem.TokenCount;
                 db.Update(existingItem);
             }
         }
 
-        public bool CheckExist(string TokenID)
+        public bool CheckExist(string TokenID, int BagTokenId)
         {
-            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenID);
+            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenID && x.IdBagTokens == BagTokenId);
 
             if (existingItem == null)
             {
@@ -150,81 +159,79 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             }
         }
 
-        public List<TokensTransactionBuy> GetListTokensTransactionBuy()
+        public List<TokensTransactionBuy> GetListTokensTransactionBuy(int BagTokenId)
         {
-            var data = db.Table<TokensTransactionBuy>();
-            List<TokensTransactionBuy> tokensTransactionBuy = new List<TokensTransactionBuy>();
-            foreach (var item in data)
-            {
-                tokensTransactionBuy.Add(item);
-            }
-            return tokensTransactionBuy;
+            var data = db.Table<TokensTransactionBuy>().Where(x => x.IdBagTokens == BagTokenId).ToList();
+            return data;
         }
-        public List<TokensTransactionSale> GetListTokensTransactionSale()
+        public List<TokensTransactionSale> GetListTokensTransactionSale(int BagTokenId)
         {
-            var data = db.Table<TokensTransactionSale>();
-            List<TokensTransactionSale> tokensTransactionSale = [.. data];
-            return tokensTransactionSale;
+            var data = db.Table<TokensTransactionSale>().Where(x => x.IdBagTokens == BagTokenId).ToList();
+            return data;
         }
-        public List<TokensTransactionBuy> GetListTokensTransactionBuyToTokenId(string TokenId)
+        public List<TokensTransactionBuy> GetListTokensTransactionBuyToTokenId(string TokenId, int BagTokenId)
         {
-            var data = db.Table<TokensTransactionBuy>();
-            List<TokensTransactionBuy> tokensTransactionBuy = new List<TokensTransactionBuy>();
-            foreach (var item in data)
-            {
-                if (item.TokenId == TokenId)
-                {
-                    tokensTransactionBuy.Add(item);
-                }
-            }
-            return tokensTransactionBuy;
+            var data = db.Table<TokensTransactionBuy>().Where(x => x.TokenId == TokenId && x.IdBagTokens == BagTokenId).ToList();
+            return data;
         }
-        public List<TokensTransactionSale> GetListTokensTransactionSaleToTokenId(string TokenId)
+        public List<TokensTransactionSale> GetListTokensTransactionSaleToTokenId(string TokenId, int BagTokenId)
         {
-            var data = db.Table<TokensTransactionSale>();
-            List<TokensTransactionSale> tokensTransactionSale = [.. data];
-            foreach (var item in data)
-            {
-                if (item.TokenId == TokenId)
-                {
-                    tokensTransactionSale.Add(item);
-                }
-            }
-            return tokensTransactionSale;
+            var data = db.Table<TokensTransactionSale>().Where(x => x.TokenId == TokenId && x.IdBagTokens == BagTokenId).ToList();
+            return data;
         }
 
-        public List<TokensAssets> GetListTokens()
+        public List<TokensAssets> GetListTokens(int BagTokenId)
         {
-            var data = db.Table<TokensAssets>();
-            List<TokensAssets> bagTokens = new List<TokensAssets>();
-            foreach (var item in data)
-            {
-                bagTokens.Add(item);
-            }
-            return bagTokens;
+            var data = db.Table<TokensAssets>().Where(x => x.IdBagTokens == BagTokenId).ToList();
+            return data;
         }
         public List<AssetsPortfileList> GetListBagTokens()
         {
-            var data = db.Table<AssetsPortfileList>();
+            var data = db.Table<AssetsPortfileList>().ToList();
 
-            List<AssetsPortfileList> bagTokens = new List<AssetsPortfileList>();
-            foreach (var item in data)
-            {
-                bagTokens.Add(item);
-            }
-            return bagTokens;
+            return data;
         }
 
-
-        public TokensAssets GetTokenToId(string TokenID)
+        public TokensAssets GetTokenToId(string TokenID, int BagTokenId)
         {
-            var token = db.Get<TokensAssets>(TokenID);
+            var token = db.Table<TokensAssets>()
+              .Where(x => x.TokenID == TokenID && x.IdBagTokens == BagTokenId)
+              .FirstOrDefault();
+            
             return token;
+        }
+
+        public void UpDateTransactionBuy(int id, string TokenId, double Price, double Count, DateTime Date, int BagTokenId)
+        {
+            TokensTransactionBuy update = new TokensTransactionBuy
+            {
+                Id = id,
+                TokenId = TokenId,
+                Price = Price,
+                Count = Count,
+                Date = Date,
+                IdBagTokens = BagTokenId
+            };
+            db.Update(update);
+        }
+        public void UpDateTransactionSale(int id, string TokenId, double Price, double Count, DateTime Date, int BagTokenId)
+        {
+            TokensTransactionSale update = new TokensTransactionSale
+            {
+                Id = id,
+                TokenId = TokenId,
+                Price = Price,
+                Count = Count,
+                Date = Date,
+                IdBagTokens = BagTokenId
+            };
+            db.Update(update);
         }
 
         public void DelTransactionBuyIsId(int id)
         {
             var existingItem = db.Table<TokensTransactionBuy>().FirstOrDefault(x => x.Id == id);
+            
             if (existingItem != null)
             {
                 db.Delete(existingItem);
@@ -251,6 +258,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
 
         public void DelAll()
         {
+            
             db.DeleteAll<TokensTransactionSale>();
             db.DeleteAll<TokensTransactionBuy>();
             db.DeleteAll<TokensAssets>();

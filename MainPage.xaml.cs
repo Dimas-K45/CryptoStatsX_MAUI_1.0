@@ -22,17 +22,18 @@ namespace CryptoStatsX_MAUI
         Dictionary<string,object> ActiveInfoTokenTransaction = [];
 
         ObservableCollection<ListToken> dataSource = new ObservableCollection<ListToken>();
-        int positionDataSourse = 20;
+        //int positionDataSourse = 20;
         public MainPage()
         {
             InitializeComponent();
 
             //SQL.AddDataToken("solana", 3, 160, 1);
-            //SQL.AddBagToken("Test2", "");
+            //SQL.AddBagToken("MyPortfile", "");
 
             //SQL.DelAll();
             //PageAssetsCoin.HeightRequest = PageAssetsCoin.Height + 300;
             //gg.HeightRequest = gg.Height + 300;
+            
             
             
             try
@@ -51,7 +52,7 @@ namespace CryptoStatsX_MAUI
         private void InitializeMainCryptoList()
         {
             List<string> Tokens = new List<string>();
-            foreach (var t in SQL.GetListTokens())
+            foreach (var t in SQL.GetListTokens(ActiveBagTokensId))
             {
                 Tokens.Add(t.TokenID);
             }
@@ -104,7 +105,7 @@ namespace CryptoStatsX_MAUI
 
                 foreach (var Token in InfoTokens)
                 {
-                    var tokendb = SQL.GetTokenToId(Token.Id);
+                    var tokendb = SQL.GetTokenToId(Token.Id, ActiveBagTokensId);
                     TotalAssetsCount += tokendb.TokenCount * Token.current_price;
                     if (tokendb.TokenCount <= 0)
                     {
@@ -259,7 +260,7 @@ namespace CryptoStatsX_MAUI
             
         }
 
-        //добавление транзакци по монете
+        //список транзакци по монете
         private void GetCryptoTokensAssetsCoin(List<TokensTransactionBuy> buyList, List<TokensTransactionSale> saleList)
         {
             var combinedAndSorted = buyList.Cast<object>()
@@ -396,6 +397,10 @@ namespace CryptoStatsX_MAUI
                             Source = "edit.svg",
                             Aspect = Aspect.Center
                         };
+                        editImage.AutomationId = $"buy/{buyTransaction.Id}/editImage";
+                        var TapIseditImage = new TapGestureRecognizer();
+                        TapIseditImage.Tapped += TapIsEditImageBuy;
+                        editImage.GestureRecognizers.Add(TapIseditImage);
 
                         var backImage = new Image()
                         {
@@ -537,6 +542,10 @@ namespace CryptoStatsX_MAUI
                             Source = "edit.svg",
                             Aspect = Aspect.Center
                         };
+                        editImage.AutomationId = $"sale/{saleTransaction.Id}/editImage";
+                        var TapIseditImage = new TapGestureRecognizer();
+                        TapIseditImage.Tapped += TapIsEditImageSale;
+                        editImage.GestureRecognizers.Add(TapIseditImage);
 
                         var backImage = new Image()
                         {
@@ -631,6 +640,7 @@ namespace CryptoStatsX_MAUI
             InitializeMainCryptoList();
         }
 
+        
         private void TapIsBackImageAssetsCoinSale(object sender, TappedEventArgs e)
         {
             Image img = sender as Image;
@@ -737,7 +747,7 @@ namespace CryptoStatsX_MAUI
         {
             Image img = sender as Image;
             string CoinId = img.AutomationId.ToString().Split("/")[1];
-            TokensAssets tokendbinfo = SQL.GetTokenToId(CoinId);
+            TokensAssets tokendbinfo = SQL.GetTokenToId(CoinId, ActiveBagTokensId);
             ActiveInfoTokenTransaction = await APICoinGecko.GetInfoTokenToID(CoinId, "usd");
 
             double ActivePriceCoin = Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","));
@@ -765,7 +775,7 @@ namespace CryptoStatsX_MAUI
                 PLUsdToAssetsCoin.TextColor = Color.Parse("#FF0000");
             }
 
-            GetCryptoTokensAssetsCoin(SQL.GetListTokensTransactionBuyToTokenId(tokendbinfo.TokenID), SQL.GetListTokensTransactionSaleToTokenId(tokendbinfo.TokenID));
+            GetCryptoTokensAssetsCoin(SQL.GetListTokensTransactionBuyToTokenId(tokendbinfo.TokenID, ActiveBagTokensId), SQL.GetListTokensTransactionSaleToTokenId(tokendbinfo.TokenID, ActiveBagTokensId));
             
         }
 
@@ -780,7 +790,7 @@ namespace CryptoStatsX_MAUI
             //    dataSource.Add(new ListToken { Id = $"{coins[i].Id}", Name = $"{coins[i].Name} ({coins[i].Symbol.ToUpper()})", Symbol = coins[i].Symbol, Price = (double)coins[i].Current_price, Image = coins[i].Image.ToString() });
             //}
 
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < coins.Length; i++)
             {
                 dataSource.Add(new ListToken { Id = $"{coins[i].Id}", Name = $"{coins[i].Name} ({coins[i].Symbol.ToUpper()})", Symbol = coins[i].Symbol, Price = (double)coins[i].Current_price, Image = coins[i].Image.ToString() });
             }
@@ -820,6 +830,31 @@ namespace CryptoStatsX_MAUI
         // поиск коина по списку криптовалют
         private void SearchListCrypto(object sender, EventArgs e)
         {
+            //string searchText = ((TextEdit)sender).Text;
+            //if (searchText.Length > 1)
+            //{
+            //    var dataClone = dataSource;
+            //    foreach (var item in dataClone)
+            //    {
+            //        if (!item.Name.Contains(searchText) || !item.Symbol.Contains(searchText))
+            //        {
+            //            dataClone.Remove(item);
+            //        }
+            //    }
+            //    if (dataClone.Count > 0)
+            //    {
+            //        DataGridListTokens.ItemsSource = dataClone;
+            //    }
+            //    else
+            //    {
+            //        DataGridListTokens.ItemsSource = dataSource;
+            //    }
+            //}
+            //else if (searchText == "" || searchText == null)
+            //{
+            //    DataGridListTokens.ItemsSource = dataSource;
+            //}
+
             try
             {
                 string searchText = ((TextEdit)sender).Text;
@@ -839,7 +874,7 @@ namespace CryptoStatsX_MAUI
         async void OnPanUpdated(object sender, PanUpdatedEventArgs e)
         {
             var element = (VisualElement)sender;
-            
+
             switch (e.StatusType)
             {
                 case GestureStatus.Started:
@@ -850,12 +885,21 @@ namespace CryptoStatsX_MAUI
                 case GestureStatus.Running:
                     if (isPanning)
                     {
-                        if (e.TotalY > 0)
+                        if(element.TranslationY >= 0)
                         {
-                            element.TranslationY += e.TotalY;
                             PageTransaction.TranslationY += e.TotalY;
+                            element.TranslationY += e.TotalY;
                         }
-                        // Проверяем, сдвинулся ли элемент вниз более чем на 50%
+                    }
+                    break;
+
+                case GestureStatus.Canceled:
+                case GestureStatus.Completed:
+                    // Если жест завершился до того, как элемент скрылся за экраном,
+                    // возвращаем его на исходное место
+                    // Проверяем, сдвинулся ли элемент вниз более чем на 50%
+                    if (isPanning)
+                    {
                         if (element.TranslationY > (element.Height * 0.5) && PageTransaction.TranslationY > (PageTransaction.Height * 0.5))
                         {
                             isPanning = false; // Прекращаем обработку перемещения
@@ -875,17 +919,14 @@ namespace CryptoStatsX_MAUI
                                 MainPageTransaction.IsVisible = false;
                             }
                         }
-                    }
-                    break;
+                        else
+                        {
+                            await Task.WhenAll(
+                                element.TranslateTo(element.TranslationX, 0, 250),
+                                PageTransaction.TranslateTo(PageTransaction.TranslationX, 0, 250)
+                                );
 
-                case GestureStatus.Canceled:
-                case GestureStatus.Completed:
-                    // Если жест завершился до того, как элемент скрылся за экраном,
-                    // возвращаем его на исходное место
-                    if (isPanning)
-                    {
-                        element.TranslateTo(element.TranslationX, 0, 250); // Возвращаем элемент
-                        PageTransaction.TranslateTo(PageTransaction.TranslationX, 0, 250); // Возвращаем элемент
+                        }
                     }
                     break;
             }
@@ -912,8 +953,6 @@ namespace CryptoStatsX_MAUI
 
                         // Проверяем, достиг ли верхний край элемента верхнего края экрана
                         bool isAtTopEdge = topOfElementInScreen <= 10;
-
-                        var topOfElementInScreen2 = PageAssetsCoin.Y + PageAssetsCoin.TranslationY;
 
 
                         if (isAtTopEdge)
@@ -1000,10 +1039,10 @@ namespace CryptoStatsX_MAUI
                             
                             if (info[info.Length - 1] == "USD")
                             {
-                                if (SQL.UpDateTokenMinus("tether", Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId))
+                                if (SQL.UpDateTokenMinus("tether", Convert.ToDouble(CountCoinOrUsd.Value), ComboBoxPortfileTransaction.SelectedIndex + 1))
                                 {
-                                    SQL.UpDateTokenMinus("tether", Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId);
-                                    SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex);
+                                    SQL.UpDateTokenMinus("tether", Convert.ToDouble(CountCoinOrUsd.Value), ComboBoxPortfileTransaction.SelectedIndex + 1);
+                                    SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / PriceTransaction.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1);
                                     
                                     ClosePage();
                                     await GetPushBox("Успешно куплено!", ImgPushBox.yes);
@@ -1015,10 +1054,10 @@ namespace CryptoStatsX_MAUI
                             }
                             else
                             {
-                                if (SQL.UpDateTokenMinus("tether", (Convert.ToDouble(CountCoinOrUsd.Value) * Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ActiveBagTokensId))
+                                if (SQL.UpDateTokenMinus("tether", (Convert.ToDouble(CountCoinOrUsd.Value) * Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ComboBoxPortfileTransaction.SelectedIndex + 1))
                                 {
-                                    SQL.UpDateTokenMinus("tether", (Convert.ToDouble(CountCoinOrUsd.Value) * Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ActiveBagTokensId);
-                                    SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId);
+                                    SQL.UpDateTokenMinus("tether", (Convert.ToDouble(CountCoinOrUsd.Value) * Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ComboBoxPortfileTransaction.SelectedIndex + 1);
+                                    SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1);
                                     
                                     ClosePage();
                                     await GetPushBox("Успешно куплено!", ImgPushBox.yes);
@@ -1036,10 +1075,10 @@ namespace CryptoStatsX_MAUI
 
                             if (info[info.Length - 1] == "USD")
                             {
-                                if (SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), (Convert.ToDouble(CountCoinOrUsd.Value) / Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ActiveBagTokensId))
+                                if (SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), (Convert.ToDouble(CountCoinOrUsd.Value) / Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ComboBoxPortfileTransaction.SelectedIndex + 1))
                                 {
-                                    SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), (Convert.ToDouble(CountCoinOrUsd.Value) / Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ActiveBagTokensId);
-                                    SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex, true);
+                                    SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), (Convert.ToDouble(CountCoinOrUsd.Value) / Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ComboBoxPortfileTransaction.SelectedIndex + 1);
+                                    SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / PriceTransaction.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex+1, true);
                                     
                                     ClosePage();
                                     await GetPushBox("Успешно Продано!", ImgPushBox.yes);
@@ -1051,10 +1090,10 @@ namespace CryptoStatsX_MAUI
                             }
                             else
                             {
-                                if (SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId) && SQL.CheckExist(ActiveInfoTokenTransaction["id"].ToString()))
+                                if (SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId) && SQL.CheckExist(ActiveInfoTokenTransaction["id"].ToString(), ComboBoxPortfileTransaction.SelectedIndex + 1))
                                 {
-                                    SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId);
-                                    SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId, true);
+                                    SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(CountCoinOrUsd.Value), ComboBoxPortfileTransaction.SelectedIndex + 1);
+                                    SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1, true);
                                     
                                     ClosePage();
                                     await GetPushBox("Успешно Продано!", ImgPushBox.yes);
@@ -1074,14 +1113,14 @@ namespace CryptoStatsX_MAUI
 
                             if (info[info.Length - 1] == "USD")
                             {
-                                SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex);
+                                SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / PriceTransaction.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex+1);
 
                                 ClosePage();
                                 await GetPushBox("Успешно куплено!", ImgPushBox.yes);
                             }
                             else
                             {
-                                SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId);
+                                SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1);
 
                                 ClosePage();
                                 await GetPushBox("Успешно куплено!", ImgPushBox.yes);
@@ -1093,14 +1132,14 @@ namespace CryptoStatsX_MAUI
 
                             if (info[info.Length - 1] == "USD")
                             {
-                                SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / Convert.ToDecimal(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex, false);
+                                SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / PriceTransaction.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex+1, false);
 
                                 ClosePage();
                                 await GetPushBox("Успешно Продано!", ImgPushBox.yes);
                             }
                             else
                             {
-                                SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ActiveBagTokensId, false);
+                                SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1, false);
 
                                 ClosePage();
                                 await GetPushBox("Успешно Продано!", ImgPushBox.yes);
@@ -1126,6 +1165,7 @@ namespace CryptoStatsX_MAUI
             yes,
             wifi
         }
+
         //метод для анимации и вызова уведомления об ошибке
         private async Task GetPushBox(string message, ImgPushBox image)
         {
@@ -1243,35 +1283,135 @@ namespace CryptoStatsX_MAUI
             ListCoinsAndSearch.IsVisible = false;
         }
 
-        private void PointerGestureRecognizer_PointerPressed(object sender, PointerEventArgs e)
+        
+        //подгрузка списка токенов
+        //private async void DataGridListTokens_Scrolled(object sender, DataGridViewScrolledEventArgs e)
+        //{
+
+        //    // Получение текущего смещения (вертикальной позиции прокрутки)
+        //    double offsetY = e.OffsetY;
+
+        //    // Получение высоты всего контента
+        //    double extentHeight = e.ExtentHeight;
+
+        //    // Получение высоты видимой области (окна просмотра)
+        //    double viewportHeight = e.ViewportHeight;
+
+        //    // Проверка, достигнут ли конец списка
+        //    bool scrolledToEnd = offsetY + viewportHeight >= extentHeight;
+        //    if (scrolledToEnd)
+        //    {
+        //        CryptoCurrency[] coins = await APICoinGecko.GetListTokenS();
+
+        //        for (int i = positionDataSourse; i < positionDataSourse+10 && i < coins.Length; i++)
+        //        {
+        //            dataSource.Add(new ListToken { Id = $"{coins[i].Id}", Name = $"{coins[i].Name} ({coins[i].Symbol.ToUpper()})", Symbol = coins[i].Symbol, Price = (double)coins[i].Current_price, Image = coins[i].Image.ToString() });
+        //        }
+        //        positionDataSourse += 10;
+        //    }
+        //}
+
+        private void FacePanRecon(object sender, PanUpdatedEventArgs e)
         {
 
         }
 
-        private async void DataGridListTokens_Scrolled(object sender, DataGridViewScrolledEventArgs e)
+        //редактирование транзакции 
+        private async void TapIsEditImageBuy(object sender, TappedEventArgs e)
         {
+            Image img = sender as Image;
+            string id = img.AutomationId.ToString().Split("/")[1];
+            ActiveIdTransaction.Text = $"buy/{id}";
+            var transact = SQL.GetTransactionBuyIsId(Convert.ToInt32(id));
 
-            // Получение текущего смещения (вертикальной позиции прокрутки)
-            double offsetY = e.OffsetY;
+            MainPageAssetsCoinEditTransaction.IsVisible = true;
+            PageAssetsCoinEditTransaction.TranslationY += PageAssetsCoinEditTransaction.Height;
+            await Task.Delay(20);
+            await PageAssetsCoinEditTransaction.TranslateTo(PageAssetsCoinEditTransaction.TranslationX, 0, 250);
+            await Task.Delay(50);
 
-            // Получение высоты всего контента
-            double extentHeight = e.ExtentHeight;
+            CountAssetsCoinEditTransaction.Value = (decimal?)transact.Count;
+            PriceAssetsCoinEditTransaction.Value = (decimal?)transact.Price;
+            DateAssetsCoinEditTransaction.Date = transact.Date;
+            CountPriceAssetsCoinEditTransaction.Text = "$ " + (transact.Count * transact.Price);
+        }
+        private async void TapIsEditImageSale(object sender, TappedEventArgs e)
+        {
+            Image img = sender as Image;
+            string id = img.AutomationId.ToString().Split("/")[1];
+            ActiveIdTransaction.Text = $"sale/{id}";
+            var transact = SQL.GetTransactionBuyIsId(Convert.ToInt32(id));
 
-            // Получение высоты видимой области (окна просмотра)
-            double viewportHeight = e.ViewportHeight;
+            MainPageAssetsCoinEditTransaction.IsVisible = true;
+            PageAssetsCoinEditTransaction.TranslationY += PageAssetsCoinEditTransaction.Height;
+            await Task.Delay(20);
+            await PageAssetsCoinEditTransaction.TranslateTo(PageAssetsCoinEditTransaction.TranslationX, 0, 250);
+            await Task.Delay(50);
 
-            // Проверка, достигнут ли конец списка
-            bool scrolledToEnd = offsetY + viewportHeight >= extentHeight;
-            if (scrolledToEnd)
+            CountAssetsCoinEditTransaction.Value = (decimal?)transact.Count;
+            PriceAssetsCoinEditTransaction.Value = (decimal?)transact.Price;
+            DateAssetsCoinEditTransaction.Date = transact.Date;
+            CountPriceAssetsCoinEditTransaction.Text = "$ " + (transact.Count * transact.Price);
+        }
+
+        private async void TapSuccesEditTransaction(object sender, TappedEventArgs e)
+        {
+            if (CountAssetsCoinEditTransaction.Value > 0)
             {
-                CryptoCurrency[] coins = await APICoinGecko.GetListTokenS();
-
-                for (int i = positionDataSourse; i < positionDataSourse+10 && i < coins.Length; i++)
+                if (PriceAssetsCoinEditTransaction.Value > 0)
                 {
-                    dataSource.Add(new ListToken { Id = $"{coins[i].Id}", Name = $"{coins[i].Name} ({coins[i].Symbol.ToUpper()})", Symbol = coins[i].Symbol, Price = (double)coins[i].Current_price, Image = coins[i].Image.ToString() });
+                    if (DateAssetsCoinEditTransaction.Date != null)
+                    {
+                        if (ActiveIdTransaction.Text.Split("/")[0] == "buy")
+                        {
+                            SQL.UpDateTransactionBuy(Convert.ToInt32(ActiveIdTransaction.Text), ActiveInfoTokenTransaction["id"].ToString(), (double)PriceAssetsCoinEditTransaction.Value, (double)CountAssetsCoinEditTransaction.Value, (DateTime)DateAssetsCoinEditTransaction.Date, ActiveBagTokensId);
+
+                            PageAssetsCoinEditTransaction.TranslationY = 0;
+                            await Task.Delay(20);
+                            await PageAssetsCoinEditTransaction.TranslateTo(PageAssetsCoinEditTransaction.TranslationX, PageAssetsCoinEditTransaction.Height, 250);
+                            await Task.Delay(50);
+                            MainPageAssetsCoinEditTransaction.IsVisible = false;
+
+                            await GetPushBox("Успешно изменено", ImgPushBox.yes);
+                            GetCryptoTokensAssetsCoin(SQL.GetListTokensTransactionBuyToTokenId(ActiveInfoTokenTransaction["id"].ToString(), ActiveBagTokensId), SQL.GetListTokensTransactionSaleToTokenId(ActiveInfoTokenTransaction["id"].ToString(), ActiveBagTokensId));
+                        }
+                        else
+                        {
+                            SQL.UpDateTransactionSale(Convert.ToInt32(ActiveIdTransaction.Text), ActiveInfoTokenTransaction["id"].ToString(), (double)PriceAssetsCoinEditTransaction.Value, (double)CountAssetsCoinEditTransaction.Value, (DateTime)DateAssetsCoinEditTransaction.Date, ActiveBagTokensId);
+
+                            PageAssetsCoinEditTransaction.TranslationY = 0;
+                            await Task.Delay(20);
+                            await PageAssetsCoinEditTransaction.TranslateTo(PageAssetsCoinEditTransaction.TranslationX, PageAssetsCoinEditTransaction.Height, 250);
+                            await Task.Delay(50);
+                            MainPageAssetsCoinEditTransaction.IsVisible = false;
+
+                            await GetPushBox("Успешно изменено", ImgPushBox.yes);
+                            GetCryptoTokensAssetsCoin(SQL.GetListTokensTransactionBuyToTokenId(ActiveInfoTokenTransaction["id"].ToString(), ActiveBagTokensId), SQL.GetListTokensTransactionSaleToTokenId(ActiveInfoTokenTransaction["id"].ToString(), ActiveBagTokensId));
+                        }
+                    }
+                    else
+                    {
+                        await GetPushBox("Заполни поле Дата", ImgPushBox.error_circle);
+                    }
                 }
-                positionDataSourse += 10;
+                else
+                {
+                    await GetPushBox("Заполни поле Цена", ImgPushBox.error_circle);
+                }
             }
+            else
+            {
+                await GetPushBox("Заполни поле Кол-во", ImgPushBox.error_circle);
+            }
+        }
+
+        private async void TapCloseMainPageAssetsCoinEditTransaction(object sender, TappedEventArgs e)
+        {
+            PageAssetsCoinEditTransaction.TranslationY = 0;
+            await Task.Delay(20);
+            await PageAssetsCoinEditTransaction.TranslateTo(PageAssetsCoinEditTransaction.TranslationX, PageAssetsCoinEditTransaction.Height, 250);
+            await Task.Delay(50);
+            MainPageAssetsCoinEditTransaction.IsVisible = false;
         }
 
 

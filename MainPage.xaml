@@ -97,6 +97,21 @@
                 <Image x:Name="OtherNavigate" Grid.Column="2" Source="other_no_active.svg" Margin="18"/>
             </Grid>
         </dx:DXBorder>
+
+        <!--страница инфо о крипте-->
+        <dx:DXBorder Background="#1C1C1C" Grid.RowSpan="2" IsVisible="false">
+            <Grid RowDefinitions="*,2.5*" Margin="15">
+                <Grid RowDefinitions="*,0.8*,2*,0.8*">
+                    <Grid ColumnDefinitions="50,*">
+                        <Image Source="delete.svg" Margin="5"/>
+                        <Label Grid.Column="1" Text="BTC" VerticalOptions="Center" HorizontalOptions="Start" TextColor="#fff" FontSize="30" FontAttributes="Bold"/>
+                    </Grid>
+                    <dx:DXBorder Grid.Row="1" Margin="10,3,0,0" CornerRadius="5" HorizontalOptions="Start" Padding="5,0,5,0" BorderThickness="1" BorderColor="#14FF00">
+                        <Label Grid.Column="1" Text="+100000 %" VerticalOptions="Center" TextColor="#14FF00" FontSize="15" FontAttributes="Bold"/>
+                    </dx:DXBorder>
+                </Grid>
+            </Grid>
+        </dx:DXBorder>
         
         <!--Список монет и их поиск-->
         <dx:DXBorder x:Name="ListCoinsAndSearch" Grid.RowSpan="2" Background="#161616" IsVisible="False">
@@ -124,7 +139,7 @@
                             </DataTemplate>
                         </dxcv:DXCollectionView.ItemTemplate>
                     </dxcv:DXCollectionView>-->
-                    <dxg:DataGridView x:Name="DataGridListTokens" Scrolled="DataGridListTokens_Scrolled" RestoreCollectionsMode="Apply" AutoGenerateColumnsMode="Auto" BackgroundColor="#161616" SelectionMode="None" IsColumnHeaderVisible="False">
+                    <dxg:DataGridView x:Name="DataGridListTokens" RestoreCollectionsMode="Apply" AutoGenerateColumnsMode="Auto" BackgroundColor="#161616" SelectionMode="None" IsColumnHeaderVisible="False">
                         <dxg:DataGridView.GroupRowAppearance>
                             <dxg:GroupRowAppearance BackgroundColor="Transparent" BottomBorderColor="Transparent" BorderColor="Transparent"/>
                         </dxg:DataGridView.GroupRowAppearance>
@@ -154,7 +169,7 @@
         </dx:DXBorder>
         
         <!--страница с добавлением транзакций-->
-        <dx:DXBorder x:Name="MainPageTransaction" Grid.RowSpan="2" Background="#99161616" IsVisible="false">
+        <dx:DXBorder x:Name="MainPageTransaction" InputTransparent="False" Grid.RowSpan="2" Background="#99161616" IsVisible="false">
             <Grid RowDefinitions="2*,5*">
                 <Label x:Name="swipeLabel" Text="Bitcoin" TextColor="#D4D4D4" HorizontalOptions="Center" VerticalOptions="End" FontSize="20" FontAttributes="Bold">
                     <Label.GestureRecognizers>
@@ -167,8 +182,8 @@
                     </Image.GestureRecognizers>
                 </Image>
 
-                <dx:DXBorder x:Name="PageTransaction" CornerRadius="20,20,0,0" Opacity="1" Grid.Row="1" Grid.RowSpan="2" Background="#161616">
-                    <Grid RowDefinitions="2*,*,*,*,*,*,2*">
+                <dx:DXBorder x:Name="PageTransaction" Margin="0,0,0,-50" CornerRadius="20,20,0,0" Opacity="1" Grid.Row="1" Grid.RowSpan="2" Background="#161616">
+                    <Grid RowDefinitions="2*,*,*,*,*,*,3*">
                         <Grid ColumnDefinitions="*,*">
                             <dx:DXBorder x:Name="BorderBuyTransaction" BorderThickness="1" BorderColor="#05FF00" BackgroundColor="#5E5E5E" Margin="20" CornerRadius="10">
                                 <Label x:Name="LabelBuyTransaction" Text="Купить" FontSize="20" TextColor="#05FF00" VerticalOptions="Center" HorizontalOptions="Center">
@@ -242,7 +257,7 @@
         </dx:DXBorder>
         
         <!--страница Накоплений крипты-->
-        <dx:DXBorder x:Name="MainPageAssetsCoin" Grid.RowSpan="2" Background="#99161616" IsVisible="true">
+        <dx:DXBorder x:Name="MainPageAssetsCoin" Grid.RowSpan="2" Background="#99161616" IsVisible="false">
             <Grid RowDefinitions="2*,5*">
                 <Border x:Name="BorderIsFullPageAssetsCoin" Opacity="0" HeightRequest="50" BackgroundColor="#161616" VerticalOptions="Start"/>
 
@@ -275,7 +290,7 @@
                             <Label x:Name="PLUsdToAssetsCoin" Grid.Column="3" FontSize="16" Text="$100 000,78" HorizontalOptions="Center" TextColor="#05FF00" />
                         </Grid>
                         <Border Grid.Row="5" BackgroundColor="#868686" Margin="10,0,10,0"/>
-                        <ScrollView Grid.Row="6">
+                        <ScrollView Grid.Row="6" Padding="0,0,0,200">
                             <VerticalStackLayout x:Name="LayoutAssetsCoin">
                                 <!--<dx:DXBorder CornerRadius="20" BackgroundColor="#222222" HeightRequest="120" Margin="12,5,12,5">
                                     <Grid>
@@ -307,6 +322,41 @@
                                 </dx:DXBorder>-->
                             </VerticalStackLayout>
                         </ScrollView>
+                    </Grid>
+                </dx:DXBorder>
+            </Grid>
+        </dx:DXBorder>
+
+        <!--редактирование транзакции-->
+        <dx:DXBorder x:Name="MainPageAssetsCoinEditTransaction" Grid.RowSpan="2" Background="#99161616" IsVisible="true">
+            <dx:DXBorder.GestureRecognizers>
+                <TapGestureRecognizer Tapped="TapCloseMainPageAssetsCoinEditTransaction" />
+            </dx:DXBorder.GestureRecognizers>
+            <Grid RowDefinitions="*,*">
+                <dx:DXBorder x:Name="PageAssetsCoinEditTransaction" CornerRadius="20,20,0,0" Grid.Row="1" Background="#1E1E1E">
+                    <Grid RowDefinitions="*,*,*,*,*" Padding="10,0,15,10">
+                        <Label Text="Цена" Grid.Row="1" VerticalOptions="Center" FontAttributes="Bold" FontSize="18" TextColor="#B6B6B6"/>
+                        <Label Text="Стоимость" Grid.Row="2" VerticalOptions="Center" FontAttributes="Bold" FontSize="18" TextColor="#B6B6B6"/>
+                        <Label Text="Дата" Grid.Row="3" VerticalOptions="Center" FontAttributes="Bold" FontSize="18" TextColor="#B6B6B6"/>
+
+                        <Grid ColumnDefinitions="1.5*,4*">
+                            <Label Text="Кол-во" VerticalOptions="Center" FontAttributes="Bold" FontSize="18" TextColor="#B6B6B6"/>
+                            <dxe:NumericEdit x:Name="CountAssetsCoinEditTransaction" Grid.Column="1" TextFontSize="20" BorderColor="Transparent" FocusedBorderColor="Transparent" ClearIconVisibility="Never" TextHorizontalAlignment="End" TextVerticalAlignment="Center" BoxPadding="0,0,15,0" TextColor="#fff" TextFontAttributes="Bold"/>
+                        </Grid>
+                        <dxe:NumericEdit x:Name="PriceAssetsCoinEditTransaction" Suffix="$" Grid.Row="1" TextFontSize="20" BorderColor="Transparent" FocusedBorderColor="Transparent" ClearIconVisibility="Never" TextHorizontalAlignment="End" TextVerticalAlignment="Center" BoxPadding="0,0,15,0" TextColor="#fff" TextFontAttributes="Bold"/>
+                        <Label x:Name="CountPriceAssetsCoinEditTransaction" Grid.Row="2" Text="$ 1000000" HorizontalOptions="End" VerticalOptions="Center" FontSize="18" FontAttributes="Bold" TextColor="#B6B6B6"/>
+                        <dxe:DateEdit x:Name="DateAssetsCoinEditTransaction" Grid.Row="3" VerticalOptions="Center" BoxPadding="0,0,15,0" TextVerticalAlignment="Center" IconVerticalAlignment="Center" TextHorizontalAlignment="End" BorderColor="Transparent" FocusedBorderColor="Transparent" DisplayFormat="dd.MM.yyyy" TextFontSize="20" TextColor="#fff" >
+                            <dxe:DateEdit.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="ShowPickerDate" />
+                            </dxe:DateEdit.GestureRecognizers>
+                        </dxe:DateEdit>
+                        <dx:DXBorder Grid.Row="4" BackgroundColor="#373737" CornerRadius="20" Margin="60,10,60,10">
+                            <dx:DXBorder.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="TapSuccesEditTransaction" />
+                            </dx:DXBorder.GestureRecognizers>
+                            <Label Grid.Column="3" Text="Сохранить" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" FontSize="15" TextColor="#EEEEEE"/>
+                        </dx:DXBorder>
+                        <Label x:Name="ActiveIdTransaction" TextColor="Transparent"/>
                     </Grid>
                 </dx:DXBorder>
             </Grid>

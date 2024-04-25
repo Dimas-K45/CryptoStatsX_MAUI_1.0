@@ -10,7 +10,10 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
     [Table("TokensAssets")]
     public class TokensAssets
     {
-        [PrimaryKey, Column("TokenID")]
+        [PrimaryKey, AutoIncrement, Column("Id")]
+        public int Id { get; set; }
+        
+        [Column("TokenID")]
         public string TokenID { get; set; }
 
         [Column("TokenCount")]
