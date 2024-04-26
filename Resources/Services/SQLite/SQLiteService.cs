@@ -29,13 +29,14 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             catch { }
         }
 
-        public void AddDataToken(string TokenID, double TokenCount, double AVGPrice, int IdBagTokens)
+        public void AddDataToken(string TokenID, double TokenCount, double AVGPriceBuy, double AVGPriceSale, int IdBagTokens)
         {
             TokensAssets bagTokens = new TokensAssets
             {
                 TokenID = TokenID,
                 TokenCount = TokenCount,
-                AVGPrice = AVGPrice, 
+                AVGPriceBuy = AVGPriceBuy, 
+                AVGPriceSale = AVGPriceSale, 
                 IdBagTokens = IdBagTokens
             };
             db.Insert(bagTokens);
@@ -52,7 +53,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             db.Insert(bagTokens);
         }
 
-        public bool UpDateTokenPlus(string TokenId, double Count, int BagTokensId)
+        public bool UpDateTokenPlus(string TokenId, double Count, double Price, int BagTokensId)
         {
             var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId && x.IdBagTokens == BagTokensId);
             if (existingItem != null)
@@ -63,7 +64,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             }
             else
             {
-                AddDataToken(TokenId, 0, 0, BagTokensId);
+                AddDataToken(TokenId, 0, Price, 0, BagTokensId);
                 var existingItem2 = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId && x.IdBagTokens == BagTokensId);
                 existingItem2.TokenCount += Count;
                 db.Update(existingItem2);
@@ -104,7 +105,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             {
                 TokenID = TokenId,
                 TokenCount = Count,
-                AVGPrice = Price,
+                AVGPriceBuy = Price,
                 IdBagTokens = BagTokensId
             };
             // Проверяем, существует ли запись с указанным TokenID
@@ -126,7 +127,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
                 {
                     summTokenTrans += item.Price * item.Count;
                 }
-                existingItem.AVGPrice = summTokenTrans / existingItem.TokenCount;
+                existingItem.AVGPriceBuy = summTokenTrans / existingItem.TokenCount;
                 db.Update(existingItem);
             }
         }
@@ -141,7 +142,7 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             }
             else { return true; }
         }
-        public void AddTransactionSell(string TokenId, double Price, double Count, DateTime Date, int IdBagTokens, bool tetherIsAdd)
+        public void AddTransactionSale(string TokenId, double Price, double Count, DateTime Date, int BagTokenId, bool tetherIsAdd)
         {
             TokensTransactionSale bagTokens = new TokensTransactionSale
             {
@@ -149,13 +150,32 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
                 Price = Price,
                 Count = Count,
                 Date = Date,
-                IdBagTokens = IdBagTokens
+                IdBagTokens = BagTokenId
             };
             db.Insert(bagTokens);
 
+            var transBuy = db.Table<TokensTransactionBuy>().Where(x => x.TokenId == TokenId && x.IdBagTokens == BagTokenId);
+            var transSell = db.Table<TokensTransactionSale>().Where(x => x.TokenId == TokenId && x.IdBagTokens == BagTokenId);
+            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId && x.IdBagTokens == BagTokenId);
+
+            double summTokenTrans = 0;
+            double summCountTrans = 0;
+            foreach (var item in transBuy)
+            {
+                summTokenTrans += item.Price * item.Count;
+                summCountTrans += item.Count;
+            }
+            foreach (var item in transSell)
+            {
+                summTokenTrans += item.Price * item.Count;
+                summCountTrans += item.Count;
+            }
+            existingItem.AVGPriceSale = summTokenTrans / summCountTrans;
+            db.Update(existingItem);
+
             if (tetherIsAdd )
             {
-                UpDateTokenPlus("tether", Price * Count, IdBagTokens);
+                UpDateTokenPlus("tether", Price * Count, 1, BagTokenId);
             }
         }
 
@@ -213,6 +233,17 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
                 IdBagTokens = BagTokenId
             };
             db.Update(update);
+
+            var trans = db.Table<TokensTransactionBuy>().Where(x => x.TokenId == TokenId && x.IdBagTokens == BagTokenId);
+            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId && x.IdBagTokens == BagTokenId);
+
+            double summTokenTrans = 0;
+            foreach (var item in trans)
+            {
+                summTokenTrans += item.Price * item.Count;
+            }
+            existingItem.AVGPriceBuy = summTokenTrans / existingItem.TokenCount + Count;
+            db.Update(existingItem);
         }
         public void UpDateTransactionSale(int id, string TokenId, double Price, double Count, DateTime Date, int BagTokenId)
         {
@@ -226,9 +257,20 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
                 IdBagTokens = BagTokenId
             };
             db.Update(update);
+
+            var trans = db.Table<TokensTransactionSale>().Where(x => x.TokenId == TokenId && x.IdBagTokens == BagTokenId);
+            var existingItem = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId && x.IdBagTokens == BagTokenId);
+
+            double summTokenTrans = 0;
+            foreach (var item in trans)
+            {
+                summTokenTrans += item.Price * item.Count;
+            }
+            existingItem.AVGPriceSale = summTokenTrans / existingItem.TokenCount + Count;
+            db.Update(existingItem);
         }
 
-        public void DelTransactionBuyIsId(int id)
+        public void DelTransactionBuyIsId(int id, string TokenId, int BagTokenId)
         {
             var existingItem = db.Table<TokensTransactionBuy>().FirstOrDefault(x => x.Id == id);
             
@@ -236,19 +278,40 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
             {
                 db.Delete(existingItem);
             }
+
+            var trans = db.Table<TokensTransactionBuy>().Where(x => x.TokenId == TokenId && x.IdBagTokens == BagTokenId);
+            var existingItemToken = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId && x.IdBagTokens == BagTokenId);
+
+            double summTokenTrans = 0;
+            foreach (var item in trans)
+            {
+                summTokenTrans += item.Price * item.Count;
+            }
+            existingItemToken.AVGPriceBuy = summTokenTrans / existingItemToken.TokenCount;
+            db.Update(existingItem);
         }
         public TokensTransactionBuy GetTransactionBuyIsId(int id)
         {
             var existingItem = db.Table<TokensTransactionBuy>().FirstOrDefault(x => x.Id == id);
             return existingItem;
         }
-        public void DelTransactionSaleIsId(int id)
+        public void DelTransactionSaleIsId(int id, string TokenId, int BagTokenId)
         {
             var existingItem = db.Table<TokensTransactionSale>().FirstOrDefault(x => x.Id == id);
             if (existingItem != null)
             {
                 db.Delete(existingItem);
             }
+            var trans = db.Table<TokensTransactionSale>().Where(x => x.TokenId == TokenId && x.IdBagTokens == BagTokenId);
+            var existingItemToken = db.Table<TokensAssets>().FirstOrDefault(x => x.TokenID == TokenId && x.IdBagTokens == BagTokenId);
+
+            double summTokenTrans = 0;
+            foreach (var item in trans)
+            {
+                summTokenTrans += item.Price * item.Count;
+            }
+            existingItemToken.AVGPriceSale = summTokenTrans / existingItemToken.TokenCount;
+            db.Update(existingItem);
         }
         public TokensTransactionSale GetTransactionSaleIsId(int id)
         {

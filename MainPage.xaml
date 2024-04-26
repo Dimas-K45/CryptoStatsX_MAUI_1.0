@@ -33,7 +33,8 @@
                     </dx:DXBorder>
                 </Grid>
             </Grid>
-
+            
+            <!--второй блок со списком крипты в портфеле-->
             <Grid Grid.Row="1" RowDefinitions="30,*">
                 <Grid ColumnDefinitions="*,2*,2*">
                     <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Center">
@@ -70,6 +71,8 @@
                     </dx:DXStackLayout>
                 </ScrollView>
             </Grid>
+        
+            
         </Grid>
 
 
@@ -208,7 +211,7 @@
                                 </Image.GestureRecognizers>
                             </Image>
                             <Label x:Name="LabelCountCoinOrUsd" Grid.Column="1" Text="Всего BTC" VerticalOptions="Center" TextColor="#E5E5E5" FontSize="18"/>
-                            <dxe:NumericEdit x:Name="CountCoinOrUsd" Grid.Column="2" TextFontSize="20" BorderColor="Transparent" FocusedBorderColor="Transparent" ClearIconVisibility="Never" TextHorizontalAlignment="End" TextVerticalAlignment="Center" BoxPadding="0,0,15,0" TextColor="#fff" TextFontAttributes="Bold"/>
+                            <dxe:NumericEdit x:Name="CountCoinOrUsd" PlaceholderText="ввести" AllowNullValue="True" Grid.Column="2" TextFontSize="20" BorderColor="Transparent" FocusedBorderColor="Transparent" ClearIconVisibility="Never" TextHorizontalAlignment="End" TextVerticalAlignment="Center" BoxPadding="0,0,15,0" TextColor="#fff" TextFontAttributes="Bold"/>
                                 <dx:DXBorder Margin="15,0,15,0" HeightRequest="1" VerticalOptions="End" BackgroundColor="#535353" Grid.ColumnSpan="3"/>
                             </Grid>
                             <Grid Grid.Row="2" ColumnDefinitions="30,2*,3*">
@@ -223,7 +226,7 @@
                         
                         <Grid Grid.Row="3" ColumnDefinitions="30,*,2*">
                             <Label Grid.Column="1" Text="Цена" VerticalOptions="Center" TextColor="#E5E5E5" FontSize="20"/>
-                            <dxe:NumericEdit x:Name="PriceTransaction" Grid.Column="2" TextFontSize="20" BorderColor="Transparent" FocusedBorderColor="Transparent" ClearIconVisibility="Never" TextHorizontalAlignment="End" TextVerticalAlignment="Center" BoxPadding="0,0,15,0" TextColor="#fff" TextFontAttributes="Bold"/>
+                            <dxe:NumericEdit x:Name="PriceTransaction" Suffix="$" Grid.Column="2" TextFontSize="20" BorderColor="Transparent" FocusedBorderColor="Transparent" ClearIconVisibility="Never" TextHorizontalAlignment="End" TextVerticalAlignment="Center" BoxPadding="0,0,15,0" TextColor="#fff" TextFontAttributes="Bold"/>
                             <dx:DXBorder Margin="15,0,15,0" HeightRequest="1" VerticalOptions="End" BackgroundColor="#535353" Grid.ColumnSpan="3"/>
                         </Grid>
                         
@@ -257,7 +260,7 @@
         </dx:DXBorder>
         
         <!--страница Накоплений крипты-->
-        <dx:DXBorder x:Name="MainPageAssetsCoin" Grid.RowSpan="2" Background="#99161616" IsVisible="false">
+        <dx:DXBorder x:Name="MainPageAssetsCoin" Grid.RowSpan="2" Background="#99161616" IsVisible="true">
             <Grid RowDefinitions="2*,5*">
                 <Border x:Name="BorderIsFullPageAssetsCoin" Opacity="0" HeightRequest="50" BackgroundColor="#161616" VerticalOptions="Start"/>
 
@@ -267,7 +270,7 @@
                     </Label.GestureRecognizers>
                 </Label>
                 <dx:DXBorder x:Name="PageAssetsCoin" Margin="0,0,0,-160" CornerRadius="20,20,0,0" Opacity="1" Grid.Row="1" Grid.RowSpan="2" Background="#161616">
-                    <Grid x:Name="gg" RowDefinitions="*,2*,*,1.5*,1.5*,1,15*">
+                    <Grid x:Name="gg" RowDefinitions="*,2*,*,1.2*,1.2*,1.2*,1,15*">
                         <Label x:Name="LabelSymbolToAssetcCoin" FontSize="18" Text="Накопления BTC" HorizontalOptions="Center" TextColor="#7E7E7E" />
                         <dx:DXBorder Grid.Row="1" BackgroundColor="#303030" Margin="30,0,30,0" CornerRadius="15">
                             <Grid RowDefinitions="*,*" ColumnDefinitions="*,1,*" VerticalOptions="Center">
@@ -283,14 +286,18 @@
                             <Label VerticalOptions="Center" FontSize="15" TextColor="#70FF76" Text="Сред. цена покупки:" HorizontalOptions="Center"/>
                             <Label x:Name="AvgPriceToAssetsCoin" Grid.Column="1" VerticalOptions="Center" FontSize="16" TextColor="#fff" Text="$0,000078" HorizontalOptions="Center"/>
                         </Grid>
-                        <Grid VerticalOptions="Center" Grid.Row="4" ColumnDefinitions="*,*,1,*">
+                        <Grid VerticalOptions="Center" Grid.Row="4" ColumnDefinitions="*,*">
+                            <Label VerticalOptions="Center" FontSize="15" TextColor="#F96342" Text="Сред. цена продажи:" HorizontalOptions="Center"/>
+                            <Label x:Name="AvgPriceSaleToAssetsCoin" Grid.Column="1" VerticalOptions="Center" FontSize="16" TextColor="#fff" Text="$0,000078" HorizontalOptions="Center"/>
+                        </Grid>
+                        <Grid VerticalOptions="Center" Grid.Row="5" ColumnDefinitions="*,*,1,*">
                             <Label FontSize="16" Text="P/L (all time):" HorizontalOptions="Center" TextColor="#7E7E7E" />
                             <Label x:Name="PLToAssetsCoin" Grid.Column="1" FontSize="16" Text="+1000000%" HorizontalOptions="Center" TextColor="#05FF00" />
                             <Border Grid.Column="2" BackgroundColor="#868686"/>
                             <Label x:Name="PLUsdToAssetsCoin" Grid.Column="3" FontSize="16" Text="$100 000,78" HorizontalOptions="Center" TextColor="#05FF00" />
                         </Grid>
-                        <Border Grid.Row="5" BackgroundColor="#868686" Margin="10,0,10,0"/>
-                        <ScrollView Grid.Row="6" Padding="0,0,0,200">
+                        <Border Grid.Row="6" BackgroundColor="#868686" Margin="10,0,10,0"/>
+                        <ScrollView Grid.Row="7" Padding="0,0,0,200">
                             <VerticalStackLayout x:Name="LayoutAssetsCoin">
                                 <!--<dx:DXBorder CornerRadius="20" BackgroundColor="#222222" HeightRequest="120" Margin="12,5,12,5">
                                     <Grid>

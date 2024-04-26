@@ -33,9 +33,8 @@ namespace CryptoStatsX_MAUI
             //SQL.DelAll();
             //PageAssetsCoin.HeightRequest = PageAssetsCoin.Height + 300;
             //gg.HeightRequest = gg.Height + 300;
-            
-            
-            
+
+
             try
             {
                 InitializeMainCryptoList();
@@ -172,7 +171,7 @@ namespace CryptoStatsX_MAUI
                         VerticalOptions = LayoutOptions.Center,
                         FontSize = 15,
                         TextColor = Color.Parse("#24FF00"),
-                        Text = InsertSeparator((((Token.current_price - tokendb.AVGPrice) / Token.current_price) * 100).ToString()) + "%",
+                        Text = InsertSeparator((((Token.current_price - tokendb.AVGPriceBuy) / Token.current_price) * 100).ToString()) + "%",
                         FontAttributes = FontAttributes.Bold
                     };
                     if (label3.Text[0] == '-')
@@ -198,7 +197,7 @@ namespace CryptoStatsX_MAUI
                     {
                         FontSize = 15,
                         TextColor = Color.Parse("#24FF00"),
-                        Text = "$" + InsertSeparator((((tokendb.AVGPrice / 100) * (((Token.current_price - tokendb.AVGPrice) / Token.current_price) * 100)) * tokendb.TokenCount).ToString()),
+                        Text = "$" + InsertSeparator((((tokendb.AVGPriceBuy / 100) * (((Token.current_price - tokendb.AVGPriceBuy) / Token.current_price) * 100)) * tokendb.TokenCount).ToString()),
                         FontAttributes = FontAttributes.Bold
                     };
                     if (label4.Text[1] == '-')
@@ -596,7 +595,7 @@ namespace CryptoStatsX_MAUI
                 }
             }
             SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), activeToken.Count, activeToken.IdBagTokens);
-            SQL.DelTransactionBuyIsId(Convert.ToInt32(id));
+            SQL.DelTransactionBuyIsId(Convert.ToInt32(id), ActiveInfoTokenTransaction["id"].ToString(), ActiveBagTokensId);
             InitializeMainCryptoList();
             if (LayoutAssetsCoin.Children.Count <= 0)
             {
@@ -635,8 +634,8 @@ namespace CryptoStatsX_MAUI
                 }
             }
 
-            SQL.UpDateTokenPlus(ActiveInfoTokenTransaction["id"].ToString(), activeToken.Count, activeToken.IdBagTokens);
-            SQL.DelTransactionSaleIsId(Convert.ToInt32(id));
+            SQL.UpDateTokenPlus(ActiveInfoTokenTransaction["id"].ToString(), activeToken.Count, Convert.ToDouble(ActiveInfoTokenTransaction["current_price"]), activeToken.IdBagTokens);
+            SQL.DelTransactionSaleIsId(Convert.ToInt32(id), ActiveInfoTokenTransaction["id"].ToString(), ActiveBagTokensId);
             InitializeMainCryptoList();
         }
 
@@ -757,9 +756,10 @@ namespace CryptoStatsX_MAUI
             TotalCoinCountToAssetsCoin.Text = InsertSeparator(tokendbinfo.TokenCount.ToString());
             TotalPriceCoinCountToAssetsCoin.Text = "$" + InsertSeparator((tokendbinfo.TokenCount * ActivePriceCoin).ToString());
             DiversificationToAssetsCoin.Text = "Диверсификация: " + InsertSeparator((((tokendbinfo.TokenCount * ActivePriceCoin) / Convert.ToDouble(TotalAssets.Text.Replace("$", ""))) * 100).ToString()) + "%";
-            AvgPriceToAssetsCoin.Text = "$" + InsertSeparator(tokendbinfo.AVGPrice.ToString());
-            PLToAssetsCoin.Text = InsertSeparator((((ActivePriceCoin - tokendbinfo.AVGPrice) / ActivePriceCoin) * 100).ToString()) + "%";
-            PLUsdToAssetsCoin.Text = "$" + InsertSeparator((((tokendbinfo.AVGPrice / 100) * (((ActivePriceCoin - tokendbinfo.AVGPrice) / ActivePriceCoin) * 100)) * tokendbinfo.TokenCount).ToString());
+            AvgPriceToAssetsCoin.Text = "$" + InsertSeparator(tokendbinfo.AVGPriceBuy.ToString());
+            AvgPriceSaleToAssetsCoin.Text = "$" + InsertSeparator(tokendbinfo.AVGPriceSale.ToString());
+            PLToAssetsCoin.Text = InsertSeparator((((ActivePriceCoin - tokendbinfo.AVGPriceBuy) / ActivePriceCoin) * 100).ToString()) + "%";
+            PLUsdToAssetsCoin.Text = "$" + InsertSeparator((((tokendbinfo.AVGPriceBuy / 100) * (((ActivePriceCoin - tokendbinfo.AVGPriceBuy) / ActivePriceCoin) * 100)) * tokendbinfo.TokenCount).ToString());
 
             MainPageAssetsCoin.IsVisible = true;
             swipeLabelAssetsCoin.TranslationY += swipeLabelAssetsCoin.Height;
@@ -769,10 +769,15 @@ namespace CryptoStatsX_MAUI
             );
             await Task.Delay(50);
 
-            if (InsertSeparator((((ActivePriceCoin - tokendbinfo.AVGPrice) / ActivePriceCoin) * 100).ToString())[0] == '-')
+            if (InsertSeparator((((ActivePriceCoin - tokendbinfo.AVGPriceBuy) / ActivePriceCoin) * 100).ToString())[0] == '-')
             {
                 PLToAssetsCoin.TextColor = Color.Parse("#FF0000");
                 PLUsdToAssetsCoin.TextColor = Color.Parse("#FF0000");
+            }
+            else
+            {
+                PLToAssetsCoin.TextColor = Color.Parse("#05FF00");
+                PLUsdToAssetsCoin.TextColor = Color.Parse("#05FF00");
             }
 
             GetCryptoTokensAssetsCoin(SQL.GetListTokensTransactionBuyToTokenId(tokendbinfo.TokenID, ActiveBagTokensId), SQL.GetListTokensTransactionSaleToTokenId(tokendbinfo.TokenID, ActiveBagTokensId));
@@ -1041,7 +1046,6 @@ namespace CryptoStatsX_MAUI
                             {
                                 if (SQL.UpDateTokenMinus("tether", Convert.ToDouble(CountCoinOrUsd.Value), ComboBoxPortfileTransaction.SelectedIndex + 1))
                                 {
-                                    SQL.UpDateTokenMinus("tether", Convert.ToDouble(CountCoinOrUsd.Value), ComboBoxPortfileTransaction.SelectedIndex + 1);
                                     SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / PriceTransaction.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1);
                                     
                                     ClosePage();
@@ -1056,7 +1060,6 @@ namespace CryptoStatsX_MAUI
                             {
                                 if (SQL.UpDateTokenMinus("tether", (Convert.ToDouble(CountCoinOrUsd.Value) * Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ComboBoxPortfileTransaction.SelectedIndex + 1))
                                 {
-                                    SQL.UpDateTokenMinus("tether", (Convert.ToDouble(CountCoinOrUsd.Value) * Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ComboBoxPortfileTransaction.SelectedIndex + 1);
                                     SQL.AddTransactionBuy(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1);
                                     
                                     ClosePage();
@@ -1077,8 +1080,7 @@ namespace CryptoStatsX_MAUI
                             {
                                 if (SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), (Convert.ToDouble(CountCoinOrUsd.Value) / Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ComboBoxPortfileTransaction.SelectedIndex + 1))
                                 {
-                                    SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), (Convert.ToDouble(CountCoinOrUsd.Value) / Convert.ToDouble(ActiveInfoTokenTransaction[APICoinGecko.CoinField.Current_Price.ToString().ToLower()].ToString().Replace(".", ","))), ComboBoxPortfileTransaction.SelectedIndex + 1);
-                                    SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / PriceTransaction.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex+1, true);
+                                    SQL.AddTransactionSale(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / PriceTransaction.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex+1, true);
                                     
                                     ClosePage();
                                     await GetPushBox("Успешно Продано!", ImgPushBox.yes);
@@ -1092,8 +1094,7 @@ namespace CryptoStatsX_MAUI
                             {
                                 if (SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId) && SQL.CheckExist(ActiveInfoTokenTransaction["id"].ToString(), ComboBoxPortfileTransaction.SelectedIndex + 1))
                                 {
-                                    SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(CountCoinOrUsd.Value), ComboBoxPortfileTransaction.SelectedIndex + 1);
-                                    SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1, true);
+                                    SQL.AddTransactionSale(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1, true);
                                     
                                     ClosePage();
                                     await GetPushBox("Успешно Продано!", ImgPushBox.yes);
@@ -1132,17 +1133,31 @@ namespace CryptoStatsX_MAUI
 
                             if (info[info.Length - 1] == "USD")
                             {
-                                SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / PriceTransaction.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex+1, false);
+                                if (SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId) && SQL.CheckExist(ActiveInfoTokenTransaction["id"].ToString(), ComboBoxPortfileTransaction.SelectedIndex + 1))
+                                {
+                                    SQL.AddTransactionSale(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value / PriceTransaction.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1, false);
 
-                                ClosePage();
-                                await GetPushBox("Успешно Продано!", ImgPushBox.yes);
+                                    ClosePage();
+                                    await GetPushBox("Успешно Продано!", ImgPushBox.yes);
+                                }
+                                else
+                                {
+                                    await GetPushBox($"Недостаточно активов {ActiveInfoTokenTransaction["symbol"]}", ImgPushBox.error_circle);
+                                }
                             }
                             else
                             {
-                                SQL.AddTransactionSell(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1, false);
+                                if (SQL.UpDateTokenMinus(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(CountCoinOrUsd.Value), ActiveBagTokensId) && SQL.CheckExist(ActiveInfoTokenTransaction["id"].ToString(), ComboBoxPortfileTransaction.SelectedIndex + 1))
+                                {
+                                    SQL.AddTransactionSale(ActiveInfoTokenTransaction["id"].ToString(), Convert.ToDouble(PriceTransaction.Value), Convert.ToDouble(CountCoinOrUsd.Value), (DateTime)DateTimeTransaction.Date, ComboBoxPortfileTransaction.SelectedIndex + 1, false);
 
-                                ClosePage();
-                                await GetPushBox("Успешно Продано!", ImgPushBox.yes);
+                                    ClosePage();
+                                    await GetPushBox("Успешно Продано!", ImgPushBox.yes);
+                                }
+                                else
+                                {
+                                    await GetPushBox($"Недостаточно активов {ActiveInfoTokenTransaction["symbol"]}", ImgPushBox.error_circle);
+                                }
                             }
                         }
                     }

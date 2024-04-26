@@ -19,8 +19,11 @@ namespace CryptoStatsX_MAUI.Resources.Services.SQLite
         [Column("TokenCount")]
         public double TokenCount { get; set; }
 
-        [Column("AVGPrice")]
-        public double AVGPrice { get; set; }
+        [Column("AVGPriceBuy")]
+        public double AVGPriceBuy { get; set; }
+        
+        [Column("AVGPriceSale")]
+        public double AVGPriceSale { get; set; }
 
         [Column("IdBagTokens")]
         public int IdBagTokens { get; set; }
