@@ -133,7 +133,7 @@ namespace CryptoStatsX_MAUI.Resources.Services
             public double? Price_Change_Percentage_7d_In_Currency { get; set; }
         }
 
-        public static async Task<List<string>> GetListToken()
+        public static async Task<List<string>> GetIdListToken()
         {
             var options = new RestClientOptions($"https://api.coingecko.com/api/v3/coins/list?include_platform=false");
             var client = new RestClient(options);

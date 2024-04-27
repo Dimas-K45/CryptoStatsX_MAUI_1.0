@@ -45,6 +45,10 @@
 	  <None Remove="Resources\Images\SvgMainPage\arrow_back.svg" />
 	  <None Remove="Resources\Images\SvgMainPage\error_circle.svg" />
 	  <None Remove="Resources\Images\SvgMainPage\info_circle.svg" />
+	  <None Remove="Resources\Images\SvgMainPage\portfile_yes.svg" />
+	  <None Remove="Resources\Images\SvgMainPage\sort_buy.svg" />
+	  <None Remove="Resources\Images\SvgMainPage\sort_null.svg" />
+	  <None Remove="Resources\Images\SvgMainPage\sort_sale.svg" />
 	  <None Remove="Resources\Images\SvgMainPage\wifi.svg" />
 	  <None Remove="Resources\Images\SvgNavigate\background_main_stats.svg" />
 	  <None Remove="Resources\Images\SvgNavigate\bag_active.svg" />
@@ -63,6 +67,10 @@
 	  <MauiImage Include="Resources\Images\SvgMainPage\arrow_back.svg" />
 	  <MauiImage Include="Resources\Images\SvgMainPage\error_circle.svg" />
 	  <MauiImage Include="Resources\Images\SvgMainPage\info_circle.svg" />
+	  <MauiImage Include="Resources\Images\SvgMainPage\portfile_yes.svg" />
+	  <MauiImage Include="Resources\Images\SvgMainPage\sort_buy.svg" />
+	  <MauiImage Include="Resources\Images\SvgMainPage\sort_null.svg" />
+	  <MauiImage Include="Resources\Images\SvgMainPage\sort_sale.svg" />
 	  <MauiImage Include="Resources\Images\SvgMainPage\wifi.svg" />
 	  <MauiImage Include="Resources\Images\SvgNavigate\background_main_stats.svg" />
 	  <MauiImage Include="Resources\Images\SvgNavigate\bag_active.svg" />
