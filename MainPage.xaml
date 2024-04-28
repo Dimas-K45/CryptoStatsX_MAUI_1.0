@@ -94,9 +94,24 @@
                         <dxe:AsyncItemsSourceProvider ItemsRequested="OnDelegateRequested" />
                     </dxe:AutoCompleteEdit.ItemsSourceProvider>
                 </dxe:AutoCompleteEdit>
-                <ScrollView Grid.Row="1">
-                    <VerticalStackLayout>
-                        
+                <Image Grid.Column="1" Margin="15" Source="sort_null.svg"/>
+                <ScrollView Grid.Row="1" Grid.ColumnSpan="2">
+                    <VerticalStackLayout x:Name="MainHistoryStack" Margin="0,0,0,10">
+                        <HorizontalStackLayout Margin="15,0,0,0" HorizontalOptions="Start">
+                            <Label Text="11.02" TextColor="#B6B6B6" FontSize="15" FontAttributes="Bold"/>
+                            <Label Margin="10,0,0,0" Text="2024" TextColor="#686868" FontSize="15" FontAttributes="Bold"/>
+                        </HorizontalStackLayout>
+                        <dx:DXBorder Margin="10,5,10,0" CornerRadius="10" HeightRequest="50" BackgroundColor="#2E2E2E">
+                            <Grid ColumnDefinitions="50,*,3*,*">
+                                <Image Margin="10" Source="info_circle"/>
+                                <Label Grid.Column="1" VerticalOptions="Center" Text="BTC" TextColor="#D8D8D8" FontSize="18" FontAttributes="Bold"/>
+                                <Grid Grid.Column="2" RowDefinitions="*,*">
+                                    <Label VerticalOptions="Center" HorizontalOptions="Center" Text="0,00000001" TextColor="#fff" FontSize="15" FontAttributes="Bold"/>
+                                    <Label Grid.Row="1" VerticalOptions="Center" HorizontalOptions="Center" Text="$ 1 000 000" TextColor="#BABABA" FontSize="12" FontAttributes="Bold"/>
+                                </Grid>
+                                <Label Grid.Column="3" VerticalOptions="Center" Text="BUY" TextColor="#24FF00" FontSize="18" FontAttributes="Bold"/>
+                            </Grid>
+                        </dx:DXBorder>
                     </VerticalStackLayout>
                 </ScrollView>
             </Grid>
@@ -363,7 +378,7 @@
         </dx:DXBorder>
 
         <!--редактирование транзакции-->
-        <dx:DXBorder x:Name="MainPageAssetsCoinEditTransaction" Grid.RowSpan="2" Background="#99161616" IsVisible="true">
+        <dx:DXBorder x:Name="MainPageAssetsCoinEditTransaction" Grid.RowSpan="2" Background="#99161616" IsVisible="false">
             <dx:DXBorder.GestureRecognizers>
                 <TapGestureRecognizer Tapped="TapCloseMainPageAssetsCoinEditTransaction" />
             </dx:DXBorder.GestureRecognizers>

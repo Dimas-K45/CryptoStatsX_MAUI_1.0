@@ -36,7 +36,7 @@ namespace CryptoStatsX_MAUI
             //PageAssetsCoin.HeightRequest = PageAssetsCoin.Height + 300;
             //gg.HeightRequest = gg.Height + 300;
 
-            
+            _ = CreateCardListMainHistory(SQL.GetListTokensTransactionBuy(ActiveBagTokensId), SQL.GetListTokensTransactionSale(ActiveBagTokensId));
             try
             {
                 InitializeMainCryptoList();
@@ -72,6 +72,170 @@ namespace CryptoStatsX_MAUI
             }
         }
         
+        private void CreateCardDateMainListHistory(DateTime date)
+        {
+            var horizontalStackLayout = new StackLayout
+            {
+                Orientation = StackOrientation.Horizontal,
+                Margin = new Thickness(15, 5, 0, 0),
+                HorizontalOptions = LayoutOptions.Start
+            };
+
+            var label1 = new Label
+            {
+                Text = date.ToString("dd.MM"),
+                TextColor = Color.Parse("#B6B6B6"),
+                FontSize = 15,
+                FontAttributes = FontAttributes.Bold
+            };
+
+            var label2 = new Label
+            {
+                Text = date.Year.ToString(),
+                TextColor = Color.Parse("#686868"),
+                FontSize = 15,
+                FontAttributes = FontAttributes.Bold,
+                Margin = new Thickness(10, 0, 0, 0)
+            };
+
+            horizontalStackLayout.Children.Add(label1);
+            horizontalStackLayout.Children.Add(label2);
+
+            MainHistoryStack.Add(horizontalStackLayout);
+        }
+        private async Task CreateCardListMainHistory(List<TokensTransactionBuy> buyList, List<TokensTransactionSale> saleList)
+        {
+            var combinedAndSorted = buyList.Cast<object>()
+                            .Concat(saleList.Cast<object>())
+                            .OrderByDescending(transaction => transaction is TokensTransactionBuy ? ((TokensTransactionBuy)transaction).Date : ((TokensTransactionSale)transaction).Date)
+                            .ToList();
+            CryptoCurrency[] ListCrypto = await APICoinGecko.GetListTokenS();
+
+
+            MainHistoryStack.Children.Clear();
+            if (combinedAndSorted.Count <= 0)
+            {
+                MainHistoryStack.Add(new Label
+                {
+                    TextColor = Colors.White,
+                    Text = "Нет Транзакций",
+                    VerticalOptions = LayoutOptions.Center,
+                    HorizontalOptions = LayoutOptions.Center,
+                    FontSize = 18,
+                    Margin = new Thickness(0, 20, 0, 0)
+                });
+            }
+            else
+            {
+                for (int i = 0; i < combinedAndSorted.Count; i++)
+                {
+                    if (combinedAndSorted[i] is TokensTransactionBuy BuyTransaction)
+                    {
+                        if (i == 0)
+                        {
+                            CreateCardDateMainListHistory(BuyTransaction.Date);
+                        }
+                        else
+                        {
+                            if (combinedAndSorted[i-1] is TokensTransactionBuy OldBuy)
+                            {
+                                if (OldBuy.Date.Date != BuyTransaction.Date.Date)
+                                {
+                                    CreateCardDateMainListHistory(BuyTransaction.Date);
+                                }
+                            }
+                        }
+
+                        var border = new DXBorder
+                        {
+                            Margin = new Thickness(10, 5, 10, 0),
+                            CornerRadius = 10,
+                            HeightRequest = 50,
+                            BackgroundColor = Color.Parse("#2E2E2E")
+                        };
+
+                        var grid = new Grid();
+                        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(50) });
+                        grid.ColumnDefinitions.Add(new ColumnDefinition());
+                        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3, GridUnitType.Star) });
+                        grid.ColumnDefinitions.Add(new ColumnDefinition());
+
+                        var infoImage = new Image
+                        {
+                            Margin = new Thickness(10),
+                            Source = ListCrypto.FirstOrDefault(x => x.Id == BuyTransaction.TokenId).Image
+                        };
+
+                    var currencyLabel = new Label
+                    {
+                        Text = ListCrypto.FirstOrDefault(x => x.Id == BuyTransaction.TokenId).Symbol.ToUpper(),
+                        TextColor = Color.Parse("#D8D8D8"),
+                        FontSize = 18,
+                        FontAttributes = FontAttributes.Bold,
+                        VerticalOptions = LayoutOptions.Center
+                    };
+
+                    var valueLabel = new Label
+                    {
+                        Text = BuyTransaction.Count.ToString(),
+                        TextColor = Colors.White,
+                        FontSize = 15,
+                        FontAttributes = FontAttributes.Bold,
+                        HorizontalOptions = LayoutOptions.Center,
+                        VerticalOptions = LayoutOptions.Center
+                    };
+
+                    var priceLabel = new Label
+                    {
+                        Text = InsertSeparator((BuyTransaction.Count * BuyTransaction.Price).ToString()),
+                        TextColor = Color.Parse("#BABABA"),
+                        FontSize = 12,
+                        FontAttributes = FontAttributes.Bold,
+                        HorizontalOptions = LayoutOptions.Center,
+                        VerticalOptions = LayoutOptions.Center
+                    };
+
+                    var grid2 = new Grid();
+                    grid2.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+                    grid2.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+                    grid2.Children.Add(priceLabel);
+                    grid2.Children.Add(valueLabel);
+                    Grid.SetColumn(grid2, 2);
+                    Grid.SetRow(priceLabel, 1);
+
+                    var buyLabel = new Label
+                    {
+                        Text = "BUY",
+                        TextColor = Color.Parse("#24FF00"),
+                        FontSize = 18,
+                        FontAttributes = FontAttributes.Bold,
+                        VerticalOptions = LayoutOptions.Center
+                    };
+
+                    // Добавление элементов в иерархию
+                    grid.Children.Add(infoImage);
+                    grid.Children.Add(currencyLabel);
+                    grid.Children.Add(grid2);
+                    grid.Children.Add(buyLabel);
+
+                    Grid.SetColumn(infoImage, 0);
+                    Grid.SetColumn(currencyLabel, 1);
+                    Grid.SetColumn(buyLabel, 3);
+
+                    // Добавление grid в DXBorder
+                    border.Content = grid;
+
+                    MainHistoryStack.Add(border);
+
+                    }
+                    else if (combinedAndSorted[i] is TokensTransactionSale SaleTransaction)
+                    {
+
+                    }
+                }
+            }
+        }
         private void InitializeMainCryptoList()
         {
             List<string> Tokens = new List<string>();
@@ -299,7 +463,8 @@ namespace CryptoStatsX_MAUI
                     Text = "Нет Транзакций",
                     VerticalOptions = LayoutOptions.Center,
                     HorizontalOptions = LayoutOptions.Center,
-                    FontSize = 18
+                    FontSize = 18,
+                    Margin = new Thickness(0,20,0,0)
                 });
             }
             else
