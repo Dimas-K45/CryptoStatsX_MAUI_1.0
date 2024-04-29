@@ -251,8 +251,18 @@ namespace CryptoStatsX_MAUI
         {
             if (input.Length <= 3)
                 return input;
-            else if (Convert.ToDouble(input.Replace(".", ",")) < 99999 && Convert.ToDouble(input.Replace(".", ",")) > 999)
+            else if (Convert.ToDouble(input.Replace(".", ",")) < 99999 && Convert.ToDouble(input.Replace(".", ",")) > 1000 || Convert.ToDouble(input.Replace(".", ",")) > -99999 && Convert.ToDouble(input.Replace(".", ",")) < -1000)
                 return Math.Round(Convert.ToDouble(input.Replace(".", ",")), 0).ToString();
+            else if (Convert.ToDouble(input.Replace(".", ",")) < 1000 && Convert.ToDouble(input.Replace(".", ",")) > 10 || Convert.ToDouble(input.Replace(".", ",")) > -1000 && Convert.ToDouble(input.Replace(".", ",")) < -10)
+                return Math.Round(Convert.ToDouble(input.Replace(".", ",")), 2).ToString();
+            else if (Convert.ToDouble(input.Replace(".", ",")) < 10 && Convert.ToDouble(input.Replace(".", ",")) > 0.1 || Convert.ToDouble(input.Replace(".", ",")) > -10 && Convert.ToDouble(input.Replace(".", ",")) < -0.1)
+                return Math.Round(Convert.ToDouble(input.Replace(".", ",")), 3).ToString();
+            else if (Convert.ToDouble(input.Replace(".", ",")) < 0.1 && Convert.ToDouble(input.Replace(".", ",")) > 0.0001 || Convert.ToDouble(input.Replace(".", ",")) > -0.1 && Convert.ToDouble(input.Replace(".", ",")) < -0.0001)
+                return Math.Round(Convert.ToDouble(input.Replace(".", ",")), 6).ToString();
+            else if (Convert.ToDouble(input.Replace(".", ",")) < 0.0001 && Convert.ToDouble(input.Replace(".", ",")) > 0.000001 || Convert.ToDouble(input.Replace(".", ",")) > -0.0001 && Convert.ToDouble(input.Replace(".", ",")) < -0.000001)
+                return Math.Round(Convert.ToDouble(input.Replace(".", ",")), 8).ToString();
+
+
 
             if (input.ToLower().Contains('e'))
             {
@@ -265,9 +275,7 @@ namespace CryptoStatsX_MAUI
             }
             else
             {
-                decimal number = decimal.Parse(input.Replace(".", ","));
-                string result = number.ToString("N");
-                return result;
+                return input;
             }
         }
 
@@ -1628,11 +1636,21 @@ namespace CryptoStatsX_MAUI
 
             if (label.Text == "Активы")
             {
-                
+                label.TextColor = Color.Parse("#FF8A00");
+                LabelNavigateMainHistory.TextColor = Color.Parse("#D0D0D0");
+                GridMainTokenList.IsVisible = true;
+                GridMainHistory.IsVisible = false;
+                BorderNavigateMainAssets.BorderThickness = new Thickness(0,0,0,2);
+                BorderNavigateMainHistory.BorderThickness = new Thickness(0,0,0,0);
             }
             else if (label.Text == "История")
             {
-
+                label.TextColor = Color.Parse("#FF8A00");
+                LabelNavigateMainAssets.TextColor = Color.Parse("#D0D0D0");
+                GridMainHistory.IsVisible = true;
+                GridMainTokenList.IsVisible = false;
+                BorderNavigateMainAssets.BorderThickness = new Thickness(0, 0, 0, 0);
+                BorderNavigateMainHistory.BorderThickness = new Thickness(0, 0, 0, 2);
             }
         }
 
@@ -1653,7 +1671,87 @@ namespace CryptoStatsX_MAUI
             
         }
 
-        
+        private async void AutoCompleteEdit_SelectionChangedMainHistory(object sender, EventArgs e)
+        {
+            AutoCompleteEdit edit = sender as AutoCompleteEdit;
+
+            if (edit != null)
+            {
+                if (edit.SelectedItem is SearchListHistoryItem item)
+                {
+                    var buyList = SQL.GetListTokensTransactionBuy(ActiveBagTokensId).Where(x => x.TokenId == item.TokenId).ToList();
+                    var saleList = SQL.GetListTokensTransactionSale(ActiveBagTokensId).Where(x => x.TokenId == item.TokenId).ToList();
+
+                    await CreateCardListMainHistory(buyList, saleList);
+                }
+            }
+        }
+
+        private async void TapSortMainListHistory(object sender, TappedEventArgs e)
+        {
+            Image img = sender as Image;
+            if (img != null)
+            {
+                if (img.Source.ToString().Contains("sort_null"))
+                {
+                    img.Source = "sort_buy.svg";
+                    if (AutoCompleteSearchMainListHistory.SelectedItem != null)
+                    {
+                        var select = AutoCompleteSearchMainListHistory.SelectedItem as SearchListHistoryItem;
+                        var buyList = SQL.GetListTokensTransactionBuy(ActiveBagTokensId).Where(x => x.TokenId == select.TokenId).ToList();
+                        var buyListSort = buyList.OrderByDescending(transaction => transaction.Date).ToList();
+                        await CreateCardListMainHistory(buyListSort, new List<TokensTransactionSale>{ });
+                    }
+                    else
+                    {
+                        var select = AutoCompleteSearchMainListHistory.SelectedItem as SearchListHistoryItem;
+                        var buyList = SQL.GetListTokensTransactionBuy(ActiveBagTokensId).ToList();
+                        var buyListSort = buyList.OrderByDescending(transaction => transaction.Date).ToList();
+                        await CreateCardListMainHistory(buyListSort, new List<TokensTransactionSale> { });
+                    }
+                }
+                else if (img.Source.ToString().Contains("sort_buy"))
+                {
+                    img.Source = "sort_sale.svg";
+                    if (AutoCompleteSearchMainListHistory.SelectedItem != null)
+                    {
+                        var select = AutoCompleteSearchMainListHistory.SelectedItem as SearchListHistoryItem;
+                        var saleList = SQL.GetListTokensTransactionSale(ActiveBagTokensId).Where(x => x.TokenId == select.TokenId).ToList();
+                        var SaleListSort = saleList.OrderByDescending(transaction => transaction.Date).ToList();
+                        await CreateCardListMainHistory(new List<TokensTransactionBuy> { }, SaleListSort);
+                    }
+                    else
+                    {
+                        var select = AutoCompleteSearchMainListHistory.SelectedItem as SearchListHistoryItem;
+                        var saleList = SQL.GetListTokensTransactionSale(ActiveBagTokensId).ToList();
+                        var SaleListSort = saleList.OrderByDescending(transaction => transaction.Date).ToList();
+                        await CreateCardListMainHistory(new List<TokensTransactionBuy> { }, SaleListSort);
+                    }
+                }
+                else if (img.Source.ToString().Contains("sort_sale"))
+                {
+                    img.Source = "sort_null.svg";
+                    if (AutoCompleteSearchMainListHistory.SelectedItem != null)
+                    {
+                        var select = AutoCompleteSearchMainListHistory.SelectedItem as SearchListHistoryItem;
+                        var saleList = SQL.GetListTokensTransactionSale(ActiveBagTokensId).Where(x => x.TokenId == select.TokenId).OrderByDescending(transaction => transaction.Date).ToList();
+                        var buyList = SQL.GetListTokensTransactionBuy(ActiveBagTokensId).Where(x => x.TokenId == select.TokenId).OrderByDescending(transaction => transaction.Date).ToList();
+
+                        await CreateCardListMainHistory(buyList, saleList);
+                    }
+                    else
+                    {
+                        var select = AutoCompleteSearchMainListHistory.SelectedItem as SearchListHistoryItem;
+                        var saleList = SQL.GetListTokensTransactionSale(ActiveBagTokensId).OrderByDescending(transaction => transaction.Date).ToList();
+                        var buyList = SQL.GetListTokensTransactionBuy(ActiveBagTokensId).OrderByDescending(transaction => transaction.Date).ToList();
+
+                        await CreateCardListMainHistory(buyList, saleList);
+                    }
+                }
+            }
+        }
+
+
 
 
 

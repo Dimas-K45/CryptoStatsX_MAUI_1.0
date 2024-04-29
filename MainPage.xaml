@@ -25,24 +25,26 @@
                 <!--Кнопки навигации Активы и Истории-->
                 <Grid Grid.Row="2" ColumnDefinitions="*,*" VerticalOptions="End">
 
-                    <Label Text="Активы" Margin="0,0,0,3" FontSize="20" HorizontalOptions="Center" TextColor="#FF8A00">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="TapToMainAssetsListOrHistory"/>
-                        </Label.GestureRecognizers>
-                    </Label>
+                    <dx:DXBorder x:Name="BorderNavigateMainAssets" BorderThickness="0,0,0,2" BorderColor="#FF8A00">
+                        <Label x:Name="LabelNavigateMainAssets" Text="Активы" Margin="0,0,0,3" FontSize="20" HorizontalOptions="Center" TextColor="#FF8A00">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="TapToMainAssetsListOrHistory"/>
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </dx:DXBorder>
 
-                    <dx:DXBorder VerticalOptions="End" HeightRequest="1.5" BackgroundColor="#FF8A00"/>
-
-                    <Label Text="История" Grid.Column="1" Margin="0,0,0,3" FontSize="20" HorizontalOptions="Center" TextColor="#fff">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="TapToMainAssetsListOrHistory"/>
-                        </Label.GestureRecognizers>
-                    </Label>
+                    <dx:DXBorder x:Name="BorderNavigateMainHistory" Grid.Column="1" BorderThickness="0,0,0,0" BorderColor="#FF8A00">
+                        <Label x:Name="LabelNavigateMainHistory" Text="История" Margin="0,0,0,3" FontSize="20" HorizontalOptions="Center" TextColor="#D0D0D0">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="TapToMainAssetsListOrHistory"/>
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </dx:DXBorder>
                 </Grid>
             </Grid>
             
             <!--второй блок со списком крипты в портфеле-->
-            <Grid x:Name="GridMainTokenList" Grid.Row="1" RowDefinitions="30,*" IsVisible="false">
+            <Grid x:Name="GridMainTokenList" Grid.Row="1" RowDefinitions="30,*" IsVisible="true">
                 <Grid ColumnDefinitions="*,2*,2*">
                     <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Center">
                         <Label Text="Цена" TextColor="#909090" FontSize="15"/>
@@ -78,9 +80,10 @@
                     </dx:DXStackLayout>
                 </ScrollView>
             </Grid>
-
-            <Grid x:Name="GridMainHistory" VerticalOptions="Center" Grid.Row="1" RowDefinitions="60,*" ColumnDefinitions="4*,*">
-                <dxe:AutoCompleteEdit HeightRequest="30" NoResultsFoundText="Не найдено" Margin="10" BoxPadding="10,0,0,0" DropDownSelectedItemBackgroundColor="#242424" DropDownBackgroundColor="#242424" DisplayMember="Name" BackgroundColor="#242424" CornerRadius="8" TextColor="#fff" PlaceholderText="Поиск" VerticalOptions="Center" TextVerticalAlignment="Center" BorderThickness="0" FocusedBorderThickness="0" SubmitIconVisibility="Never" ClearIconVisibility="Never">
+            
+            <!--блок с всей историей транзакций-->
+            <Grid x:Name="GridMainHistory" VerticalOptions="Center" Grid.Row="1" RowDefinitions="60,*" ColumnDefinitions="4*,*" IsVisible="false">
+                <dxe:AutoCompleteEdit x:Name="AutoCompleteSearchMainListHistory" SelectionChanged="AutoCompleteEdit_SelectionChangedMainHistory" HeightRequest="30" NoResultsFoundText="Не найдено" Margin="10" BoxPadding="10,0,0,0" DropDownSelectedItemBackgroundColor="#242424" DropDownBackgroundColor="#242424" DisplayMember="Name" BackgroundColor="#242424" CornerRadius="8" TextColor="#fff" PlaceholderText="Поиск" VerticalOptions="Center" TextVerticalAlignment="Center" BorderThickness="0" FocusedBorderThickness="0" SubmitIconVisibility="Never" ClearIconVisibility="Never">
                     <dxe:AutoCompleteEdit.ItemTemplate>
                         <DataTemplate>
                             <Grid ColumnDefinitions="30,*,30">
@@ -94,7 +97,11 @@
                         <dxe:AsyncItemsSourceProvider ItemsRequested="OnDelegateRequested" />
                     </dxe:AutoCompleteEdit.ItemsSourceProvider>
                 </dxe:AutoCompleteEdit>
-                <Image Grid.Column="1" Margin="15" Source="sort_null.svg"/>
+                <Image Grid.Column="1" Margin="15" Source="sort_null.svg">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="TapSortMainListHistory"/>
+                    </Image.GestureRecognizers>
+                </Image>
                 <ScrollView Grid.Row="1" Grid.ColumnSpan="2">
                     <VerticalStackLayout x:Name="MainHistoryStack" Margin="0,0,0,10">
                         <HorizontalStackLayout Margin="15,0,0,0" HorizontalOptions="Start">
